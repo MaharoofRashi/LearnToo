@@ -2,7 +2,18 @@ const Admin = require('../models/adminModel');
 const Course = require('../models/courseModel')
 const jwt = require('jsonwebtoken');
 const {response} = require("express");
+const nodemailer = require('nodemailer');
 const SECRET = 'SECr3t';
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'testing4dev0@gmail.com',
+        pass: 'ktnt wqdi zbso eqlx'
+    }
+});
+
+let otpStore = {};
 
 exports.signup = (req, res) => {
     const { username, password } = req.body;
@@ -35,7 +46,6 @@ exports.login = async (req, res) => {
     } else {
         res.status(403).json({ message: 'Username not found.'});
     }
-
 }
 
 exports.courses = async (req, res) => {
@@ -61,3 +71,44 @@ exports.getAllCourses = async (req, res) => {
         res.status(500).json({ message: 'An error occurred while fetching courses' });
     }
 }
+
+exports.me = async (req, res) => {
+    res.json({
+        username: req.user.username
+    })
+}
+
+exports.requestOtp = (req, res) => {
+    const { username } = req.body;
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    otpStore[username] = otp;
+
+
+    const mailOptions = {
+        from: 'testing4dev0@gmail.com',
+        to: username,
+        subject: 'Your OTP Code',
+        text: `Your OTP code is ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Error sending OTP' });
+        } else {
+            res.status(200).json({ message: 'OTP sent' });
+        }
+    });
+};
+
+
+exports.verifyOtp = (req, res) => {
+    const { username, otp } = req.body;
+
+    if (otpStore[username] === otp) {
+        const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
+        res.status(200).json({ message: 'OTP verified', token });
+    } else {
+        res.status(400).json({ message: 'Invalid OTP' });
+    }
+};
