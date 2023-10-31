@@ -20,12 +20,18 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username, password });
     if (user) {
+        // Check if the user is blocked
+        if (user.isBlocked) {
+            return res.status(403).json({ message: 'User is blocked.' });
+        }
+
         const token = jwt.sign({ username, role: 'user' }, SECRET, { expiresIn: '1h' });
         res.json({ message: 'Logged in successfully', token });
     } else {
         res.status(403).json({ message: 'Invalid username or password' });
     }
 };
+
 
 exports.getCourses = async (req, res) => {
     const courses = await Course.find({ published: true });
@@ -56,3 +62,9 @@ exports.getPurchasedCourses = async (req, res) => {
         res.status(403).json({ message: 'User not found' });
     }
 };
+
+exports.me = async (req, res) => {
+    res.json({
+        username: req.user.username
+    })
+}

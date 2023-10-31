@@ -60,7 +60,7 @@ function Signin() {
             .then(data => {
                 if (data.token) {
                     localStorage.setItem("token", data.token);
-                    window.location = "/";
+                    window.location = "/admin/courses";
                 } else {
                     setError(data.message || "An error occurred");
                 }

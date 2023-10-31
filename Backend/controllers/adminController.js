@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const {response} = require("express");
 const nodemailer = require('nodemailer');
 const SECRET = 'SECr3t';
+const User = require('../models/userModel')
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -14,6 +15,28 @@ const transporter = nodemailer.createTransport({
 });
 
 let otpStore = {};
+
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({});
+        res.json({ users });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while fetching users' });
+    }
+};
+
+exports.updateUserStatus = async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(req.params.userId, { isBlocked: req.body.isBlocked }, { new: true });
+        if(!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User status updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while updating user status' });
+    }
+};
 
 exports.signup = (req, res) => {
     const { username, password } = req.body;
@@ -71,6 +94,19 @@ exports.getAllCourses = async (req, res) => {
         res.status(500).json({ message: 'An error occurred while fetching courses' });
     }
 }
+
+exports.deleteCourse = async (req, res) => {
+    try {
+        const course = await Course.findByIdAndDelete(req.params.courseId);
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+        res.json({ message: 'Course deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while deleting the course' });
+    }
+};
+
 
 exports.me = async (req, res) => {
     res.json({

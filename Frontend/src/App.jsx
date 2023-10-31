@@ -4,7 +4,7 @@ import Signup from "../src/components/Signup.jsx";
 import Appbar from "../src/components/Appbar.jsx";
 import AddCourse from "../src/components/AddCourse.jsx";
 import Courses from "../src/components/Courses.jsx";
-// import Course from "./Course";
+import Course from "../src/components/Course.jsx";
 import {
     RecoilRoot,
     atom,
@@ -12,6 +12,8 @@ import {
     useRecoilState,
     useRecoilValue,
 } from 'recoil';
+import UserManagement from "./components/UserManagement.jsx";
+import SignupUser from "./components/SignupUser.jsx";
 
 function App() {
 
@@ -24,11 +26,13 @@ function App() {
                 <Router>
                     <Appbar />
                     <Routes>
-                        <Route path={"/addcourse"} element={<AddCourse />} />
-                        {/*<Route path={"/course/:courseId"} element={<Course />} />*/}
-                        <Route path={"/courses"} element={<Courses />} />
-                        <Route path={"/signin"} element={<Signin />} />
-                        <Route path={"/signup"} element={<Signup />} />
+                        <Route path={"admin/addcourse"} element={<AddCourse />} />
+                        <Route path={"admin/course/:courseId"} element={<Course />} />
+                        <Route path={"admin/courses"} element={<Courses />} />
+                        <Route path={"admin/signin"} element={<Signin />} />
+                        <Route path={"admin/signup"} element={<Signup />} />
+                        <Route path={"admin/usermanagement"} element={<UserManagement />} />
+                        <Route path={"user/sigup"} element={<SignupUser />} />
                     </Routes>
                 </Router>
             </RecoilRoot>
