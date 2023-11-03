@@ -5,6 +5,7 @@ const {response} = require("express");
 const nodemailer = require('nodemailer');
 const SECRET = 'SECr3t';
 const User = require('../models/userModel')
+const Category = require('../models/categoryModel')
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -174,3 +175,55 @@ exports.verifyOtp = async (req, res) => {
         res.status(400).json({ message: 'Invalid OTP' });
     }
 };
+
+exports.createCategory = async (req, res) => {
+    const { name } = req.body;
+    try {
+        const existingCategory = await Category.findOne({ name: name});
+        if(existingCategory) {
+            return res.status(400).json({ message: "Category already exists." });
+        }
+        let category = new Category({ name });
+        category = await category.save();
+        res.status(201).json(category);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.getCategory = async (req, res) => {
+    try {
+        const categories = await Category.find({});
+        res.status(200).json(categories);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.updateCategory = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const category = await Category.findByIdAndUpdate(id, { name: req.body.name }, { new: true});
+        if(!category){
+            res.status(404).json({ message: "Category not found"})
+        } else {
+            res.status(200).json(category);
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.deleteCategory = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const category = await Category.findByIdAndDelete(id);
+        if(!category){
+            res.status(404).json({ message: "Category not found"})
+        } else {
+            res.status(200).json({ message: "Category deleted successfully"})
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message})
+    }
+}

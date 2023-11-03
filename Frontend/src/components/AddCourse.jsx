@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Button, Card, Form, Input, message, Typography, Upload} from 'antd';
+import {Button, Card, Form, Input, message, Typography, Upload, Select, InputNumber} from 'antd';
 import {UploadOutlined} from '@ant-design/icons';
 
 const { Title } = Typography;
@@ -9,6 +9,24 @@ const { Dragger } = Upload;
 function AddCourse() {
     const navigate = useNavigate();
     const [fileList, setFileList] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const token1 = localStorage.getItem("token");
+
+    useEffect(() => {
+        fetch("http://localhost:3000/admin/categories", {
+            headers: {
+                "Authorization": "Bearer " + token,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                setCategories(data);
+            })
+            .catch((error) => {
+                message.error('Failed to fetch categories: ' + error.message);
+            });
+    }, [token1]);
+
 
     // Check if the user is logged in
     const token = localStorage.getItem("token");
@@ -39,6 +57,8 @@ function AddCourse() {
         const formData = new FormData();
         formData.append('title', values.title);
         formData.append('description', values.description);
+        formData.append('category', values.category);
+        formData.append('price', values.price);
         fileList.forEach((file) => {
             formData.append('image', file.originFileObj);
         });
@@ -98,6 +118,34 @@ function AddCourse() {
                     >
                         <Input.TextArea placeholder="Enter course description" rows={4} />
                     </Form.Item>
+
+                    <Form.Item
+                        name="category"
+                        label="Category"
+                        rules={[{ required: true, message: 'Please select a category!' }]}
+                    >
+                        <Select placeholder="Select a category">
+                            {categories.map(category => (
+                                <Select.Option key={category._id} value={category._id}>
+                                    {category.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Price"
+                        name="price"
+                        rules={[{ required: true, message: 'Please input the price of the course!' }]}
+                    >
+                        <InputNumber
+                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                            placeholder="Enter course price"
+                            min={0} // minimum value
+                        />
+                    </Form.Item>
+
 
                     <Form.Item
                         name="upload"

@@ -6,7 +6,11 @@ const courseSchema = new mongoose.Schema({
     price: Number,
     imageLink: String,
     published: Boolean,
-    courseId: Number
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: [true, 'Path `category` is required.'],
+    },
 })
 
 module.exports = mongoose.model('Course', courseSchema);

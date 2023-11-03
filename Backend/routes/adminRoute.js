@@ -16,6 +16,10 @@ router.put('/courses/:courseId/unpublish', authenticateJwt, adminController.unpu
 router.get('/courses', authenticateJwt, adminController.getAllCourses);
 router.get('/me', authenticateJwt, adminController.me)
 router.delete('/courses/:courseId', authenticateJwt, adminController.deleteCourse);
+router.post('/categories', authenticateJwt, adminController.createCategory)
+router.get('/categories', authenticateJwt, adminController.getCategory);
+router.put('/categories/:id', authenticateJwt, adminController.updateCategory);
+router.delete('/categories/:id', authenticateJwt, adminController.deleteCategory)
 
 
 module.exports = router;
