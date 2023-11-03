@@ -1,143 +1,176 @@
-import { Card } from "@mui/material";
-import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom";
-import { Typography, TextField, Button } from "@mui/material";
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, Form, Input, Button, Spin, notification, Typography, Upload, Space } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+
+const { Title } = Typography;
+const { TextArea } = Input;
+const { Dragger } = Upload;
 
 function Course() {
     let { courseId } = useParams();
+    const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
+    const [fileList, setFileList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [form] = Form.useForm();
 
     useEffect(() => {
-        function callback2(data) {
-            setCourses(data.courses);
-            console.log(data.courses)
-        }
-        function callback1(res) {
-            res.json().then(callback2)
-        }
-        fetch("http://localhost:3000/admin/courses/", {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
+        const fetchCourses = async () => {
+            try {
+                const response = await fetch("http://localhost:3000/admin/courses", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("token")
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                setCourses(data.courses);
+                setLoading(false);
+            } catch (error) {
+                notification.error({ message: 'Fetch Error', description: 'Failed to fetch courses' });
+                setLoading(false);
             }
-        }).then(callback1)
+        };
+
+        fetchCourses();
     }, []);
 
-    let course = null;
-    for (let i = 0; i<courses.length; i++) {
-        if (courses[i]._id === courseId) {
-            course = courses[i]
+    useEffect(() => {
+        const currentCourse = courses.find(c => c._id === courseId);
+        if (currentCourse) {
+            form.setFieldsValue({
+                title: currentCourse.title,
+                description: currentCourse.description,
+            });
+            if (currentCourse.imageLink) {
+                setFileList([{
+                    uid: '-1',
+                    name: 'image.png',
+                    status: 'done',
+                    url: currentCourse.imageLink,
+                }]);
+            }
         }
+    }, [courses, courseId, form]);
+
+    const beforeUpload = (file) => {
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+            notification.error({ message: 'Upload Error', description: 'You can only upload image files!' });
+        }
+        return isImage || Upload.LIST_IGNORE;
+    };
+
+    const handleFileChange = (info) => {
+        setFileList(info.fileList.slice(-1));
+    };
+
+    const onFinish = async (values) => {
+        const formData = new FormData();
+        formData.append('title', values.title);
+        formData.append('description', values.description);
+        if (fileList.length > 0 && fileList[0].originFileObj) {
+            formData.append('image', fileList[0].originFileObj);
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/admin/course/${courseId}`, {
+                method: "PUT",
+                body: formData,
+                headers: {
+                    "Authorization": "Bearer " + localStorage.getItem("token"),
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const updatedCourseData = await response.json();
+            notification.success({ message: 'Update Success', description: 'Course updated successfully' });
+            setCourses(courses.map(c => c._id === courseId ? updatedCourseData : c));
+            navigate('/admin/courses');
+        } catch (error) {
+            notification.error({ message: 'Update Error', description: error.toString() });
+        }
+    };
+
+    const onFinishFailed = (errorInfo) => {
+        notification.error({ message: 'Form Error', description: 'Please check the form for errors' });
+    };
+
+    if (loading) {
+        return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', marginTop: '20%' }} />;
     }
 
-    if (!course) {
-        return <div>
-            Loading....
-        </div>
+    const currentCourse = courses.find(c => c._id === courseId);
+    if (!currentCourse) {
+        return <div style={{ textAlign: 'center', marginTop: '20%' }}>No course found</div>;
     }
 
-    return <div>
-        <CourseCard course={course} />
-        <UpdateCard courses={courses} course={course} setCourses={setCourses} />
-    </div>
-}
+    return (
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Card bordered={false} style={{ maxWidth: '700px', margin: 'auto', padding: '20px', borderRadius: '8px' }}>
+                <Title level={2} style={{ textAlign: 'center', marginBottom: '1rem' }}>Edit Course</Title>
+                <Form
+                    layout="vertical"
+                    form={form}
+                    name="edit_course"
+                    onFinish={onFinish}
+                    onFinishFailed={onFinishFailed}
+                    initialValues={{
+                        title: currentCourse.title,
+                        description: currentCourse.description,
+                    }}
+                >
+                    <Form.Item
+                        label="Title"
+                        name="title"
+                        rules={[{ required: true, message: 'Please input the title!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
 
-function UpdateCard(props) {
-    console.log("hi there from update card")
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [image, setImage] = useState("");
-    const course = props.course;
+                    <Form.Item
+                        label="Description"
+                        name="description"
+                        rules={[{ required: true, message: 'Please input the description!' }]}
+                    >
+                        <TextArea rows={4} />
+                    </Form.Item>
 
-    return <div style={{display: "flex", justifyContent: "center"}}>
-        <Card varint={"outlined"} style={{width: 400, padding: 20}}>
-            <Typography>Update course details</Typography>
-            <TextField
-                onChange={(e) => {
-                    setTitle(e.target.value)
-                }}
-                fullWidth={true}
-                label="Title"
-                variant="outlined"
-            />
+                    <Form.Item
+                        label="Course Image"
+                        name="upload"
+                        valuePropName="fileList"
+                        getValueFromEvent={handleFileChange}
+                        extra="Select an image for the course"
+                    >
+                        <Dragger
+                            name="file"
+                            beforeUpload={beforeUpload}
+                            onChange={handleFileChange}
+                            listType="picture"
+                            fileList={fileList}
+                        >
+                            <p className="ant-upload-drag-icon">
+                                <UploadOutlined />
+                            </p>
+                            <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                        </Dragger>
+                    </Form.Item>
 
-            <TextField
-                onChange={(e) => {
-                    setDescription(e.target.value)
-                }}
-                fullWidth={true}
-                label="Description"
-                variant="outlined"
-            />
-
-            <TextField
-                onChange={(e) => {
-                    setImage(e.target.value)
-                }}
-                fullWidth={true}
-                label="Image link"
-                variant="outlined"
-            />
-
-            <Button
-                size={"large"}
-                variant="contained"
-                onClick={() => {
-                    function callback2(data) {
-                        let updatedCourses = [];
-                        for (let i = 0; i<props.courses.length; i++) {
-
-                            if (props.courses[i]._id == course._id) {
-                                updatedCourses.push({
-                                    _id: course._id,
-                                    title: title,
-                                    description: description,
-                                    imageLink: image
-                                })
-                            } else {
-                                updatedCourses.push(props.courses[i]);
-                            }
-                        }
-                        props.setCourses(updatedCourses);
-                    }
-                    function callback1(res) {
-                        res.json().then(callback2)
-                    }
-                    fetch("http://localhost:3000/admin/courses/" + course._id, {
-                        method: "PUT",
-                        body: JSON.stringify({
-                            title: title,
-                            description: description,
-                            imageLink: image,
-                            published: true
-                        }),
-                        headers: {
-                            "Content-type": "application/json",
-                            "Authorization": "Bearer " + localStorage.getItem("token")
-                        }
-                    })
-                        .then(callback1)
-                }}
-            > Update course</Button>
-        </Card>
-    </div>
-}
-
-function CourseCard(props) {
-    console.log("hi there from update card")
-    const course = props.course;
-    return <div style={{display: "flex", justifyContent: "center"}}>
-        <Card style={{
-            margin: 10,
-            width: 300,
-            minHeight: 200
-        }}>
-
-            <Typography textAlign={"center"} variant="h5">{course.title}</Typography>
-            <Typography textAlign={"center"} variant="subtitle1">{course.description}</Typography>
-            <img src={course.imageLink} style={{width: 300}} ></img>
-        </Card>
-    </div>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Update Course
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+        </Space>
+    );
 }
 
 export default Course;

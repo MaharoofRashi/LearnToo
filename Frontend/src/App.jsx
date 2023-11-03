@@ -1,41 +1,48 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Signin from "../src/components/Signin.jsx";
-import Signup from "../src/components/Signup.jsx";
-import Appbar from "../src/components/Appbar.jsx";
-import AddCourse from "../src/components/AddCourse.jsx";
-import Courses from "../src/components/Courses.jsx";
-import Course from "../src/components/Course.jsx";
-import {
-    RecoilRoot,
-    atom,
-    selector,
-    useRecoilState,
-    useRecoilValue,
-} from 'recoil';
-import UserManagement from "./components/UserManagement.jsx";
-import SignupUser from "./components/SignupUser.jsx";
+import { theme } from 'antd';
+import Signin from "./components/Signin";
+import Signup from "./components/Signup";
+import AddCourse from "./components/AddCourse";
+import Courses from "./components/Courses";
+import Course from "./components/Course";
+import UserManagement from "./components/UserManagement";
+import SignupUser from "./components/SignupUser";
+import SigninUser from "./components/SigninUser";
+import CoursesUser from "./components/CoursesUser";
+import AdminSidebarLayout from "./components/AdminSidebarLayout";
+import { useRecoilState } from 'recoil';
+import { darkThemeState } from "./store/atoms/darkThemeState";
+import AddCategory from "./components/AddCategory.jsx";
+
 
 function App() {
+    const [darkTheme, setDarkTheme] = useRecoilState(darkThemeState);
+    const toggleTheme = () => {
+        setDarkTheme(!darkTheme);
+    };
+
+    const {
+        token: { colorBgContainer },
+    } = theme.useToken();
 
     return (
-        <div style={{width: "100vw",
-            height: "100vh",
-            backgroundColor: "#eeeeee"}}
-        >
-            <RecoilRoot>
-                <Router>
-                    <Appbar />
-                    <Routes>
-                        <Route path={"admin/addcourse"} element={<AddCourse />} />
-                        <Route path={"admin/course/:courseId"} element={<Course />} />
-                        <Route path={"admin/courses"} element={<Courses />} />
-                        <Route path={"admin/signin"} element={<Signin />} />
-                        <Route path={"admin/signup"} element={<Signup />} />
-                        <Route path={"admin/usermanagement"} element={<UserManagement />} />
-                        <Route path={"user/sigup"} element={<SignupUser />} />
-                    </Routes>
-                </Router>
-            </RecoilRoot>
+        <div style={{ backgroundColor: darkTheme ? '#000' : '#fff' }}>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<AdminSidebarLayout toggleTheme={toggleTheme} headerBackgroundColor={colorBgContainer} />} >
+                    <Route path="admin/courses" element={<Courses />} />
+                    <Route path="admin/addcourse" element={<AddCourse />} />
+                    <Route path="admin/course/:courseId" element={<Course />} />
+                    <Route path="admin/signin" element={<Signin />} />
+                    <Route path="admin/addcategory" element={<AddCategory />} />
+                    <Route path="admin/usermanagement" element={<UserManagement />} />
+                    <Route path="user/signup" element={<SignupUser />} />
+                    <Route path="user/signin" element={<SigninUser />} />
+                    <Route path="user/courses" element={<CoursesUser />} />
+                    </Route>
+                </Routes>
+            </Router>
         </div>
     );
 }

@@ -107,6 +107,27 @@ exports.deleteCourse = async (req, res) => {
     }
 };
 
+exports.publishCourse = async (req, res) => {
+    try {
+        const course = await Course.updateOne({_id: req.params.courseId}, {$set: {published: true}} );
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while publishing course.'})
+    }
+}
+
+exports.unpublishCourse = async (req, res) => {
+    try {
+        const course = await Course.updateOne({_id: req.params.courseId}, {$set: {published: false}} );
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while unpublishing course.'})
+    }
+}
 
 exports.me = async (req, res) => {
     res.json({
@@ -138,12 +159,17 @@ exports.requestOtp = (req, res) => {
 };
 
 
-exports.verifyOtp = (req, res) => {
+exports.verifyOtp = async (req, res) => {
     const { username, otp } = req.body;
 
     if (otpStore[username] === otp) {
-        const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'OTP verified', token });
+        const admin = await Admin.findOne({ username });
+        if (admin) {
+            const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
+            res.status(200).json({ message: 'OTP verified', token });
+        } else {
+            res.status(400).json({ message: 'User is not an admin or does not exist' });
+        }
     } else {
         res.status(400).json({ message: 'Invalid OTP' });
     }

@@ -1,21 +1,40 @@
-import { Card, Typography, Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { Card, Typography, Button, Row, Col, message } from 'antd';
+import { useNavigate } from "react-router-dom";
+
+const { Title, Paragraph } = Typography;
 
 export function Course({ course, onDelete }) {
+    const navigate = useNavigate();
+
+    const handleDelete = (e) => {
+        e.stopPropagation();
+        onDelete(course._id);
+    };
+
     return (
-        <Card style={{ margin: 10, width: 300, minHeight: 200 }}>
-            <Typography textAlign={"center"} variant="h5">{course.title}</Typography>
-            <Typography textAlign={"center"} variant="subtitle1">{course.description}</Typography>
-            <img src={course.imageLink} style={{ width: 300 }} alt={course.title} />
-            <Button variant="contained" color="secondary" onClick={() => onDelete(course._id)}>
-                Delete
-            </Button>
-        </Card>
+        <Col xs={24} sm={12} md={8} lg={6} xl={6} style={{ padding: '10px' }}>
+            <Card
+                hoverable
+                style={{ width: '100%' }}
+                cover={<img alt={course.title} src={course.imageLink} style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />}
+                onClick={() => navigate(`/admin/course/${course._id}`)}
+            >
+                <Title level={4}>{course.title}</Title>
+                <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: 'more' }}>
+                    {course.description}
+                </Paragraph>
+                <Button type="primary" danger onClick={handleDelete}>
+                    Delete
+                </Button>
+            </Card>
+        </Col>
     );
 }
 
 function Courses() {
     const [courses, setCourses] = useState([]);
+    const navigate = useNavigate();
 
     const fetchCourses = () => {
         fetch("http://localhost:3000/admin/courses/", {
@@ -30,6 +49,7 @@ function Courses() {
             })
             .catch(err => {
                 console.error("Error fetching courses", err);
+                message.error('Failed to fetch courses.');
             });
     };
 
@@ -42,12 +62,12 @@ function Courses() {
         })
             .then(res => res.json())
             .then(data => {
-                console.log("Course deleted", data);
-                // Refresh the courses list
+                message.success('Course deleted successfully.');
                 fetchCourses();
             })
             .catch(err => {
                 console.error("Error deleting course", err);
+                message.error('Failed to delete course.');
             });
     };
 
@@ -56,11 +76,11 @@ function Courses() {
     }, []);
 
     return (
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
-            {courses.map(course => {
-                return <Course key={course._id} course={course} onDelete={deleteCourseById} />;
-            })}
-        </div>
+        <Row gutter={16} justify="start">
+            {courses.map(course => (
+                <Course key={course._id} course={course} onDelete={deleteCourseById} />
+            ))}
+        </Row>
     );
 }
 
