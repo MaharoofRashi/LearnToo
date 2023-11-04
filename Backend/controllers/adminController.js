@@ -1,5 +1,6 @@
 const Admin = require('../models/adminModel');
 const Course = require('../models/courseModel')
+const Lesson = require('../models/lessonModel');
 const jwt = require('jsonwebtoken');
 const {response} = require("express");
 const nodemailer = require('nodemailer');
@@ -8,6 +9,18 @@ const User = require('../models/userModel')
 const Category = require('../models/categoryModel')
 const multer = require('multer');
 const path = require('path');
+const { S3Client } = require('@aws-sdk/client-s3');
+const { Upload } = require('@aws-sdk/lib-storage');
+const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+
+const s3Client = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+});
+
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -279,3 +292,144 @@ exports.deleteCategory = async (req, res) => {
         res.status(500).json({ message: error.message})
     }
 }
+
+async function uploadToS3(file, fileName) {
+    const uploadParams = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `uploads/${fileName}`,
+        Body: file.buffer,
+        // ACL: 'public-read', // Make sure the file is readable by anyone
+    };
+
+    try {
+        const parallelUploads3 = new Upload({
+            client: s3Client,
+            params: uploadParams,
+        });
+
+        await parallelUploads3.done();
+        return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${fileName}`;
+    } catch (error) {
+        console.error('Error uploading to S3:', error);
+        throw new Error('Error uploading to S3');
+    }
+}
+
+
+const uploadLesson = multer({ storage: multer.memoryStorage() });
+
+exports.addLesson = async (req, res) => {
+    uploadLesson.single('video')(req, res, async (err) => {
+        if (err) {
+            return res.status(500).json({ message: err.message });
+        }
+
+        try {
+            const fileExtension = req.file.originalname.split('.').pop();
+            const fileName = `${req.body.title.replace(/\s+/g, '-')}-${Date.now()}.${fileExtension}`;
+            const videoUrl = await uploadToS3(req.file, fileName);
+
+            const lesson = new Lesson({
+                title: req.body.title,
+                description: req.body.description,
+                videoUrl,
+                course: req.params.courseId
+            });
+
+            await lesson.save();
+            res.status(201).json(lesson);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    });
+};
+
+
+exports.getLessons = async (req, res) => {
+    try {
+        const lessons = await Lesson.find({ course: req.params.courseId });
+        res.json(lessons);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.editLesson = async (req, res) => {
+    const lessonId = req.params.lessonId;
+    const { title, description } = req.body;
+    console.log(title, description)
+
+    try {
+        const lesson = await Lesson.findById(lessonId);
+        if (!lesson) {
+            return res.status(404).json({ message: 'Lesson not found' });
+        }
+
+        // Update lesson details if provided
+        if (title) lesson.title = title;
+        if (description) lesson.description = description;
+
+        // Handle the file upload first
+        uploadLesson.single('video')(req, res, async (err) => {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            }
+
+            if (req.file) {
+
+                // Delete the old video from S3 first if it exists
+                if (lesson.videoUrl) {
+                    const oldFileName = lesson.videoUrl.split('/').pop();
+                    const deleteParams = {
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: `uploads/${oldFileName}`,
+                    };
+                    await s3Client.send(new DeleteObjectCommand(deleteParams));
+                }
+
+                // Upload the new video
+                const fileExtension = req.file.originalname.split('.').pop();
+                const safeTitle = lesson.title.replace(/\s+/g, '-');
+                const fileName = `${safeTitle}-${Date.now()}.${fileExtension}`;
+                const videoUrl = await uploadToS3(req.file, fileName);
+
+                // Update the lesson with the new video URL
+                lesson.videoUrl = videoUrl;
+            } else {
+                console.log('No video file to update.');
+            }
+
+            // Save the updated lesson
+            await lesson.save();
+            res.json({ message: 'Lesson updated successfully', lesson });
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+
+exports.deleteLesson = async (req, res) => {
+    try {
+        const lesson = await Lesson.findById(req.params.lessonId);
+        if (!lesson) {
+            return res.status(404).json({ message: 'Lesson not found' });
+        }
+
+        const fileName = lesson.videoUrl.split('/').pop();
+        const deleteParams = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: `uploads/${fileName}`
+        };
+
+        await s3Client.send(new DeleteObjectCommand(deleteParams));
+
+        await lesson.remove();
+        res.json({ message: 'Lesson and video file deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+

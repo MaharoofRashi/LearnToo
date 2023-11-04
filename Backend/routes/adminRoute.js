@@ -23,6 +23,10 @@ router.post('/categories', authenticateJwt, adminController.createCategory)
 router.get('/categories', authenticateJwt, adminController.getCategory);
 router.put('/categories/:id', authenticateJwt, adminController.updateCategory);
 router.delete('/categories/:id', authenticateJwt, adminController.deleteCategory)
+router.post('/courses/:courseId/lessons', authenticateJwt, adminController.addLesson);
+router.get('/courses/:courseId/lessons', authenticateJwt, adminController.getLessons);
+router.put('/lessons/:lessonId', authenticateJwt, adminController.editLesson);
+router.delete('/lessons/:lessonId', authenticateJwt, adminController.deleteLesson);
 
 
 module.exports = router;

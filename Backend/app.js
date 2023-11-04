@@ -4,6 +4,8 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const port = 3000
 const morgan = require('morgan');
+require('dotenv').config();
+
 
 
 app.use(morgan('dev'));
