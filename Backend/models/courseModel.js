@@ -4,8 +4,11 @@ const courseSchema = new mongoose.Schema({
     title: String,
     description: String,
     price: Number,
-    imageLink: String,
-    published: Boolean,
+    image: String,
+    published: {
+        type: Boolean,
+        default: false
+    },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',

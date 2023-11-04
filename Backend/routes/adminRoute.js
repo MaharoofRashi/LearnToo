@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const authenticateJwt = require('../middleware/authenticateJwt')
+const { uploadCourseImage, updateCourse } = require('../controllers/adminController');
+
 
 router.post('/signup', adminController.signup);
 router.post('/login', adminController.login);
@@ -10,7 +12,8 @@ router.put('/users/:userId', authenticateJwt, adminController.updateUserStatus)
 router.post('/request-otp', adminController.requestOtp);
 router.post('/verify-otp', adminController.verifyOtp);
 router.post('/courses', authenticateJwt, adminController.courses);
-router.put('/courses/:courseId', authenticateJwt, adminController.updateCourse)
+// router.put('/course/:courseId', authenticateJwt, adminController.updateCourse)
+router.put('/course/:courseId', authenticateJwt , uploadCourseImage, updateCourse);
 router.put('/courses/:courseId/publish', authenticateJwt, adminController.publishCourse);
 router.put('/courses/:courseId/unpublish', authenticateJwt, adminController.unpublishCourse);
 router.get('/courses', authenticateJwt, adminController.getAllCourses);

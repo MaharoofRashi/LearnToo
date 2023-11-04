@@ -17,7 +17,7 @@ export function Course({ course, onDelete }) {
             <Card
                 hoverable
                 style={{ width: '100%' }}
-                cover={<img alt={course.title} src={course.imageLink} style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />}
+                cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />}
                 onClick={() => navigate(`/admin/course/${course._id}`)}
             >
                 <Title level={4}>{course.title}</Title>

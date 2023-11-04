@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Form, Input, Button, Spin, notification, Typography, Upload, Space } from 'antd';
+import {
+    Card,
+    Form,
+    Input,
+    Button,
+    Spin,
+    notification,
+    Typography,
+    Upload,
+    Space,
+    Select,
+    InputNumber,
+    message
+} from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
@@ -14,6 +27,24 @@ function Course() {
     const [fileList, setFileList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
+    const [categories, setCategories] = useState([]);
+    const token = localStorage.getItem("token");
+
+    useEffect(() => {
+        fetch("http://localhost:3000/admin/categories", {
+            headers: {
+                "Authorization": "Bearer " + token,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                setCategories(data);
+            })
+            .catch((error) => {
+                message.error('Failed to fetch categories: ' + error.message);
+            });
+    }, [token]);
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -41,21 +72,25 @@ function Course() {
 
     useEffect(() => {
         const currentCourse = courses.find(c => c._id === courseId);
+        console.log(currentCourse);
         if (currentCourse) {
             form.setFieldsValue({
                 title: currentCourse.title,
                 description: currentCourse.description,
+                category: currentCourse.category,
+                published: currentCourse.published,
+                price: currentCourse.price
             });
-            if (currentCourse.imageLink) {
+            if (currentCourse.image) {
                 setFileList([{
                     uid: '-1',
                     name: 'image.png',
                     status: 'done',
-                    url: currentCourse.imageLink,
+                    url: currentCourse.image,
                 }]);
             }
         }
-    }, [courses, courseId, form]);
+    }, [courses, courseId, form, categories]);
 
     const beforeUpload = (file) => {
         const isImage = file.type.startsWith('image/');
@@ -73,8 +108,11 @@ function Course() {
         const formData = new FormData();
         formData.append('title', values.title);
         formData.append('description', values.description);
+        formData.append('price', values.price);
+        formData.append('category', values.category);
+        formData.append('published', values.published);
         if (fileList.length > 0 && fileList[0].originFileObj) {
-            formData.append('image', fileList[0].originFileObj);
+            formData.append('courseImage', fileList[0].originFileObj);
         }
 
         try {
@@ -123,6 +161,7 @@ function Course() {
                     initialValues={{
                         title: currentCourse.title,
                         description: currentCourse.description,
+                        category: currentCourse.category
                     }}
                 >
                     <Form.Item
@@ -139,6 +178,44 @@ function Course() {
                         rules={[{ required: true, message: 'Please input the description!' }]}
                     >
                         <TextArea rows={4} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="category"
+                        label="Category"
+                        rules={[{ required: true, message: 'Please select a category!' }]}
+                    >
+                        <Select placeholder="Select a category">
+                            {categories.map(category => (
+                                <Select.Option key={category._id} value={category._id}>
+                                    {category.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="published"
+                        label="Publish Status"
+                        rules={[{ required: true, message: 'Please select the publish status!' }]}
+                    >
+                        <Select placeholder="Select publish status">
+                            <Select.Option value={true}>Published</Select.Option>
+                            <Select.Option value={false}>Unpublished</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Price"
+                        name="price"
+                        rules={[{ required: true, message: 'Please input the price of the course!' }]}
+                    >
+                        <InputNumber
+                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                            placeholder="Enter course price"
+                            min={0} // minimum value
+                        />
                     </Form.Item>
 
                     <Form.Item

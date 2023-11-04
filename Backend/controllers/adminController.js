@@ -6,6 +6,8 @@ const nodemailer = require('nodemailer');
 const SECRET = 'SECr3t';
 const User = require('../models/userModel')
 const Category = require('../models/categoryModel')
+const multer = require('multer');
+const path = require('path');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -72,20 +74,70 @@ exports.login = async (req, res) => {
     }
 }
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Not an image! Please upload only images.'), false);
+    }
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
 exports.courses = async (req, res) => {
-    const course = new Course(req.body);
-    await course.save()
-    res.json({ message: 'Course created successfully', courseId: course.id });
+    try {
+        await new Promise((resolve, reject) => {
+            upload.single('courseImage')(req, res, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        console.log(req.body, req.file);
+        const course = new Course({...req.body, image: req.file.path});
+        await course.save()
+        return res.json({ message: 'Course created successfully', courseId: course.id });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 }
 
+exports.uploadCourseImage = (req, res, next) => {
+    upload.single('courseImage')(req, res, function (error) {
+        if (error instanceof multer.MulterError) {
+            return res.status(500).json({ message: error.message });
+        } else if (error) {
+            return res.status(500).json({ message: error.message });
+        }
+        next();
+    });
+};
+
 exports.updateCourse = async (req, res) => {
-    const course = await Course.findByIdAndUpdate(req.params.courseId, req.body, { new: true });
+
+    const updateData = req.body;
+    if (req.file) {
+        updateData.image = req.file.path;
+    }
+    const course = await Course.findByIdAndUpdate(req.params.courseId, updateData, { new: true });
     if(course) {
         res.json({ message: 'Course updated successfully' });
     } else {
         res.status(404).json({ message: 'Course not found' });
     }
 }
+
+
 
 exports.getAllCourses = async (req, res) => {
     try {

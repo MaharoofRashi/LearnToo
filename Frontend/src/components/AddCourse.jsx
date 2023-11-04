@@ -2,6 +2,8 @@ import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Button, Card, Form, Input, message, Typography, Upload, Select, InputNumber} from 'antd';
 import {UploadOutlined} from '@ant-design/icons';
+import axios from 'axios';
+
 
 const { Title } = Typography;
 const { Dragger } = Upload;
@@ -15,7 +17,7 @@ function AddCourse() {
     useEffect(() => {
         fetch("http://localhost:3000/admin/categories", {
             headers: {
-                "Authorization": "Bearer " + token,
+                "Authorization": "Bearer " + token1,
             },
         })
             .then((response) => response.json())
@@ -30,11 +32,13 @@ function AddCourse() {
 
     // Check if the user is logged in
     const token = localStorage.getItem("token");
-    if (!token) {
-        message.error("You must be logged in to add a course.");
-        navigate('/admin/signin');
-        return null; // Or a loading spinner until redirect
-    }
+    useEffect(() => {
+        // Check if the user is logged in
+        if (!token) {
+            message.error("You must be logged in to add a course.");
+            navigate('/admin/signin');
+        }
+    }, [token1, navigate]);
 
     // This function is called before the file is uploaded
     const beforeUpload = (file) => {
@@ -52,38 +56,41 @@ function AddCourse() {
         setFileList(fileList);
     };
 
-    const onFinish = (values) => {
-        // Create a new FormData object for the file upload
+    const onFinish = async (values) => {
+        console.log(values);
         const formData = new FormData();
         formData.append('title', values.title);
         formData.append('description', values.description);
-        formData.append('category', values.category);
         formData.append('price', values.price);
+        formData.append('category', values.category);
+        formData.append('published', values.published);
         fileList.forEach((file) => {
-            formData.append('image', file.originFileObj);
+            formData.append('courseImage', file.originFileObj);
         });
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
 
-        // Post request to add course with the file
-        fetch("http://localhost:3000/admin/courses", {
-            method: "POST",
-            body: formData, // FormData will be sent as multipart/form-data
+        // Set up the headers for the request
+        const config = {
             headers: {
-                "Authorization": "Bearer " + token
+                'Authorization': `Bearer ${token}`,
+                // 'Content-Type': 'multipart/form-data'
             }
-        })
-            .then((res) => {
-                if (!res.ok) {
-                    throw new Error('Failed to add course');
-                }
-                return res.json();
-            })
-            .then((data) => {
-                message.success('Course added successfully!');
-                navigate('/admin/courses');
-            })
-            .catch((error) => {
-                message.error(error.message);
-            });
+        };
+
+        try {
+            // Use axios to send the POST request
+            const response = await axios.post("http://localhost:3000/admin/courses", formData, config);
+            // If the request is successful, handle the response here
+            console.log(response.data);
+            message.success('Course added successfully!');
+            navigate('/admin/courses');
+        } catch (error) {
+            // Handle any errors here
+            console.error(error.response ? error.response.data : error.message);
+            message.error(error.response ? error.response.data.message : error.message);
+        }
     };
 
     const onFinishFailed = (errorInfo) => {
@@ -134,6 +141,17 @@ function AddCourse() {
                     </Form.Item>
 
                     <Form.Item
+                        name="published"
+                        label="Publish Status"
+                        rules={[{ required: true, message: 'Please select the publish status!' }]}
+                    >
+                        <Select placeholder="Select publish status">
+                            <Select.Option value={true}>Published</Select.Option>
+                            <Select.Option value={false}>Unpublished</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
                         label="Price"
                         name="price"
                         rules={[{ required: true, message: 'Please input the price of the course!' }]}
@@ -155,7 +173,7 @@ function AddCourse() {
                         extra="Select an image for the course"
                     >
                         <Dragger
-                            name="file"
+                            name="courseImage"
                             beforeUpload={beforeUpload}
                             onChange={handleFileChange}
                             multiple={false}
