@@ -309,6 +309,10 @@ async function uploadToS3(file, fileName) {
             params: uploadParams,
         });
 
+        parallelUploads3.on('httpUploadProgress', (progress) => {
+            console.log(progress.loaded, progress.total);
+        });
+
         await parallelUploads3.done();
         return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${fileName}`;
     } catch (error) {
