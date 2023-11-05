@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout, Button, Avatar, Menu, Dropdown } from 'antd';
 import { Outlet } from 'react-router-dom';
 import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, LogoutOutlined, ProfileOutlined } from "@ant-design/icons";
@@ -12,20 +13,20 @@ import { collapsedState } from "../store/atoms/collapsedState.js";
 const { Header, Sider, Content } = Layout;
 
 const SidebarLayout = ({ toggleTheme, headerBackgroundColor }) => {
+    const navigate = useNavigate();
     const [darkTheme] = useRecoilState(darkThemeState);
     const [collapsed, setCollapsed] = useRecoilState(collapsedState);
 
     const handleLogout = () => {
-        // Implement your logout logic here
+        localStorage.removeItem('token');
+        navigate('admin/signin');
         console.log('User logged out');
     };
 
     const handleProfileClick = () => {
-        // Implement your profile view logic here
-        console.log('Profile clicked');
+
     };
 
-    // Dropdown menu for the admin profile
     const menu = (
         <Menu>
             <Menu.Item key="profile" onClick={handleProfileClick} style={{ fontSize: '16px' }}>
