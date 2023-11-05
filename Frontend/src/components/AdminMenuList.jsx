@@ -28,8 +28,8 @@ const AdminMenuList = ({ darkTheme }) => {
             case 'userManagement':
                 navigate('/admin/usermanagement');
                 break;
-            case 'subtask-1':
-                // navigate to your subtask-1 route
+            case 'lessons':
+                navigate('/admin/lessons');
                 break;
             case 'subtask-2':
                 // navigate to your subtask-2 route

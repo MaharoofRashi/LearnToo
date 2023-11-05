@@ -14,6 +14,7 @@ import AdminSidebarLayout from "./components/AdminSidebarLayout";
 import { useRecoilState } from 'recoil';
 import { darkThemeState } from "./store/atoms/darkThemeState";
 import AddCategory from "./components/AddCategory.jsx";
+import AdminManageLessons from "./components/Lessons.jsx";
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
                     <Route path="admin/signin" element={<Signin />} />
                     <Route path="admin/addcategory" element={<AddCategory />} />
                     <Route path="admin/usermanagement" element={<UserManagement />} />
+                    <Route path="admin/lessons" element={<AdminManageLessons />} />
                     <Route path="user/signup" element={<SignupUser />} />
                     <Route path="user/signin" element={<SigninUser />} />
                     <Route path="user/courses" element={<CoursesUser />} />
