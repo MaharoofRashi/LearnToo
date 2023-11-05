@@ -294,10 +294,12 @@ exports.deleteCategory = async (req, res) => {
 }
 
 async function uploadToS3(file, fileName) {
+    const mimeType = getMimeType(file.originalname);
     const uploadParams = {
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: `uploads/${fileName}`,
         Body: file.buffer,
+        ContentType: mimeType,
         // ACL: 'public-read', // Make sure the file is readable by anyone
     };
 
@@ -313,6 +315,16 @@ async function uploadToS3(file, fileName) {
         console.error('Error uploading to S3:', error);
         throw new Error('Error uploading to S3');
     }
+}
+
+function getMimeType(filename) {
+    const extension = filename.split('.').pop().toLowerCase();
+    const mimeTypes = {
+        'mp4': 'video/mp4',
+        'mov': 'video/quicktime',
+    };
+
+    return mimeTypes[extension] || 'application/octet-stream';
 }
 
 
@@ -417,17 +429,21 @@ exports.deleteLesson = async (req, res) => {
             return res.status(404).json({ message: 'Lesson not found' });
         }
 
-        const fileName = lesson.videoUrl.split('/').pop();
-        const deleteParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: `uploads/${fileName}`
-        };
+        if (lesson.videoUrl) {
+            const fileName = lesson.videoUrl.split('/').pop();
+            const deleteParams = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: `uploads/${fileName}`
+            };
 
-        await s3Client.send(new DeleteObjectCommand(deleteParams));
+            console.log('Deleting video from S3:', fileName);
+            await s3Client.send(new DeleteObjectCommand(deleteParams));
+        }
 
-        await lesson.remove();
+        await Lesson.findByIdAndDelete(req.params.lessonId);
         res.json({ message: 'Lesson and video file deleted successfully' });
     } catch (error) {
+        console.error('Error deleting lesson:', error);
         res.status(500).json({ message: error.message });
     }
 };
