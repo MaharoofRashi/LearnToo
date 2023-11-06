@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRecoilState } from 'recoil';
+import { currentUserState } from '../store/atoms/userState.js';
 import { Link } from 'react-router-dom';
 import { Layout, Menu, Avatar, Button, Dropdown, Input, Space } from 'antd';
 import {
@@ -9,21 +11,52 @@ import {
     LogoutOutlined,
     UserOutlined,
 } from '@ant-design/icons';
+import { jwtDecode } from 'jwt-decode';
 
 const { Header } = Layout;
 const { Search } = Input;
 
-const Appbar = ({ isLoggedIn, handleLogout }) => {
+const Appbar = () => {
+    const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
+
+    useEffect(() => {
+        const checkAuthState = () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const decodedToken = jwtDecode(token);
+                    if (decodedToken.exp * 1000 > Date.now()) {
+                        setCurrentUser(decodedToken);
+                    } else {
+                        localStorage.removeItem('token');
+                        setCurrentUser(null);
+                    }
+                } catch (error) {
+                    console.error('Token decoding failed', error);
+                    localStorage.removeItem('token');
+                    setCurrentUser(null);
+                }
+            }
+        };
+
+        checkAuthState();
+    }, [setCurrentUser]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setCurrentUser(null);
+    };
+
     const menu = (
         <Menu>
             <Menu.Item key="0">
-                <Link to="/cart">My Cart</Link>
+                <Link to="/cart">My Profile</Link>
             </Menu.Item>
             <Menu.Item key="1">
                 <Link to="/wishlist">Wishlist</Link>
             </Menu.Item>
             <Menu.Item key="2">
-                <Link to="/purchased-courses">My Purchased Courses</Link>
+                <Link to="/purchased-courses">Purchased Courses</Link>
             </Menu.Item>
             <Menu.Divider />
             <Menu.Item key="3" onClick={handleLogout}>
@@ -43,7 +76,7 @@ const Appbar = ({ isLoggedIn, handleLogout }) => {
                     <Menu.Item key="home" icon={<HomeOutlined />}>
                         <Link to="/">Home</Link>
                     </Menu.Item>
-                    {!isLoggedIn ? (
+                    {!currentUser ? (
                         <Space>
                             <Button type="primary" icon={<LoginOutlined />}>
                                 <Link to="/signin">Sign In</Link>
@@ -54,14 +87,14 @@ const Appbar = ({ isLoggedIn, handleLogout }) => {
                         </Space>
                     ) : (
                         <Space>
+                            <Button icon={<ShoppingCartOutlined />}>
+                                <Link to="/cart">Cart</Link>
+                            </Button>
                             <Dropdown overlay={menu} trigger={['click']}>
                                 <a onClick={e => e.preventDefault()}>
                                     <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
                                 </a>
                             </Dropdown>
-                            <Button icon={<ShoppingCartOutlined />}>
-                                <Link to="/cart">Cart</Link>
-                            </Button>
                         </Space>
                     )}
                 </Menu>

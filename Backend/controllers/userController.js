@@ -19,16 +19,18 @@ const transporter = nodemailer.createTransport({
 let otpStore = {};
 
 exports.signup = async (req, res) => {
-    const { username, password, name } = req.body;
-    const user = await User.findOne({ username });
+    const { username, password, name, otp } = req.body;
+    let user = await User.findOne({ username });
+
     if (user) {
-        res.status(403).json({ message: 'User already exists' });
-    } else {
-        const newUser = new User({ username, password, name });
-        await newUser.save();
-        const token = jwt.sign({ username, role: 'user' }, SECRET, { expiresIn: '1h' });
-        res.json({ message: 'User created successfully', token });
+        return res.status(403).json({ message: 'User already exists' });
     }
+
+    user = new User({ username, password, name });
+    await user.save();
+    const token = jwt.sign({ username, role: 'user' }, SECRET, { expiresIn: '1h' });
+    res.status(201).json({ message: 'User created successfully', token });
+    delete otpStore[username];
 };
 
 exports.login = async (req, res) => {
@@ -131,14 +133,9 @@ exports.verifyOtp = async (req, res) => {
     const { username, otp } = req.body;
 
     if (otpStore[username] === otp) {
-        const user = await User.findOne({ username });
-        if (user) {
-            const token = jwt.sign({ username, role: 'user' }, SECRET, { expiresIn: '1h' });
-            res.status(200).json({ message: 'OTP verified', token });
-        } else {
-            res.status(400).json({ message: 'User does not exist' });
-        }
+        res.status(200).json({ message: 'OTP verified' });
     } else {
         res.status(400).json({ message: 'Invalid OTP' });
     }
 };
+

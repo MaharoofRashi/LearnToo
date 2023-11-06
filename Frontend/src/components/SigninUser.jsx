@@ -1,138 +1,96 @@
-import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import TextField from "@mui/material/TextField";
-import { Card, Typography } from "@mui/material";
+import React, {useEffect, useState} from 'react';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { useSetRecoilState } from 'recoil';
+import { jwtDecode } from 'jwt-decode';
+import { currentUserState } from '../store/atoms/userState';
 
-function Signin() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [otp, setOtp] = useState("");
-    const [loginOption, setLoginOption] = useState("password");
-    const [error, setError] = useState(null);
+const { Title } = Typography;
 
-    const handleRequestOtp = () => {
-        fetch("http://localhost:3000/user/request-otp", {
-            method: "POST",
-            body: JSON.stringify({ username: email }),
-            headers: {
-                "Content-type": "application/json"
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.message === 'OTP sent') {
-                    alert('OTP has been sent to your email');
-                } else {
-                    setError(data.message || "An error occurred");
+const Signin = () => {
+    const navigate = useNavigate();
+    const [form] = Form.useForm();
+    const setCurrentUser = useSetRecoilState(currentUserState);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                if (decoded) {
+                    navigate('/');
                 }
-            })
-            .catch(err => {
-                setError("An error occurred");
-            });
-    };
-
-    const handleSignin = () => {
-        let apiURL;
-        let payload;
-
-        if (loginOption === "password") {
-            apiURL = "http://localhost:3000/user/login";
-            payload = {
-                username: email,
-                password: password
-            };
-        } else {
-            apiURL = "http://localhost:3000/user/verify-otp";
-            payload = {
-                username: email,
-                otp: otp
-            };
+            } catch (error) {
+                console.error('Error decoding token:', error);
+            }
         }
-
-        fetch(apiURL, {
-            method: "POST",
-            body: JSON.stringify(payload),
-            headers: {
-                "Content-type": "application/json"
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.token) {
-                    localStorage.setItem("token", data.token);
-                    window.location = "/user/courses";
-                } else {
-                    setError(data.message || "An error occurred");
-                }
-            })
-            .catch(err => {
-                setError("An error occurred");
+    }, [navigate]);
+    const onFinish = async (values) => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:3000/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: values.email,
+                    password: values.password,
+                }),
             });
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                setCurrentUser(jwtDecode(data.token));
+                navigate('/');
+                message.success('Login successful!');
+            } else {
+                message.error(data.message || "Login failed");
+            }
+        } catch (error) {
+            message.error("An error occurred during login");
+        }
+        setLoading(false);
     };
 
     return (
-        <div>
-            <div style={{
-                paddingTop: 150,
-                marginBottom: 10,
-                display: "flex",
-                justifyContent: "center"
-            }}>
-                <Typography variant={"h6"}>
-                    Welcome back. Sign in below
-                </Typography>
-            </div>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-                <Card variant={"outlined"} style={{ width: 400, padding: 20 }}>
-                    <TextField
-                        onChange={(event) => {
-                            setEmail(event.target.value);
-                        }}
-                        fullWidth={true}
-                        label="Email"
-                        variant="outlined"
-                    />
-                    <br /><br />
-                    {loginOption === "password" ? (
-                        <TextField
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                            }}
-                            fullWidth={true}
-                            label="Password"
-                            variant="outlined"
-                            type={"password"}
-                        />
-                    ) : (
-                        <TextField
-                            onChange={(e) => {
-                                setOtp(e.target.value);
-                            }}
-                            fullWidth={true}
-                            label="OTP"
-                            variant="outlined"
-                        />
-                    )}
-                    <br /><br />
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                    <Button
-                        size={"large"}
-                        variant="contained"
-                        onClick={handleSignin}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh', backgroundColor: 'rgb(240, 242, 245)' }}>
+            <Card style={{ width: 300, padding: '20px' }}>
+                <Title level={2} style={{ textAlign: 'center' }}>Sign In</Title>
+                <Form
+                    form={form}
+                    name="signin"
+                    onFinish={onFinish}
+                    autoComplete="off"
+                >
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            { type: 'email', message: 'The input is not valid E-mail!' },
+                            { required: true, message: 'Please input your E-mail!' },
+                        ]}
                     >
-                        {loginOption === "password" ? "Sign In" : "Verify OTP"}
-                    </Button>
-                    <div>
-                        <Button onClick={() => setLoginOption('password')}>Login with Password</Button>
-                        <Button onClick={() => setLoginOption('otp')}>Login with OTP</Button>
-                        {loginOption === 'otp' && (
-                            <Button variant="outlined" onClick={handleRequestOtp}>Request OTP</Button>
-                        )}
-                    </div>
-                </Card>
-            </div>
+                        <Input prefix={<UserOutlined />} placeholder="Email" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[{ required: true, message: 'Please input your Password!' }]}
+                    >
+                        <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block loading={loading}>
+                            Sign In
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
         </div>
     );
-}
+};
 
 export default Signin;
