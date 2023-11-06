@@ -14,6 +14,9 @@ import { useRecoilState } from 'recoil';
 import { darkThemeState } from "./store/atoms/darkThemeState";
 import AddCategory from "./components/AddCategory.jsx";
 import AdminManageLessons from "./components/Lessons.jsx";
+import Appbar from "./components/Appbar";
+import LandingPage from "./components/LandingPage";
+import UserLayout from "./components/UserLayout.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -34,9 +37,14 @@ function App() {
         <div style={{ backgroundColor: darkTheme ? '#000' : '#fff' }}>
             <Router>
                 <Routes>
-                    <Route path="admin/signin" element={<Signin />} />
+                    <Route path="/" element={<UserLayout><LandingPage /></UserLayout>} />
+                    <Route path="/signup" element={<UserLayout><SignupUser /></UserLayout>} />
+                    <Route path="/signin" element={<UserLayout><SigninUser /></UserLayout>} />
+                    <Route path="/courses" element={<UserLayout><CoursesUser /></UserLayout>} />
+
+                    <Route path="/admin/signin" element={<Signin />} />
                     <Route
-                        path="/"
+                        path="/admin"
                         element={
                             <ProtectedRoute>
                                 <AdminSidebarLayout toggleTheme={toggleTheme} headerBackgroundColor={colorBgContainer} />
@@ -44,16 +52,13 @@ function App() {
                         }
                     >
                         <Route index element={<Navigate to="/admin/courses" replace />} />
-                        <Route path="admin/courses" element={<Courses />} />
-                        <Route path="admin/addcourse" element={<AddCourse />} />
-                        <Route path="admin/course/:courseId" element={<Course />} />
-                        <Route path="admin/addcategory" element={<AddCategory />} />
-                        <Route path="admin/usermanagement" element={<UserManagement />} />
-                        <Route path="admin/lessons" element={<AdminManageLessons />} />
+                        <Route path="courses" element={<Courses />} />
+                        <Route path="addcourse" element={<AddCourse />} />
+                        <Route path="course/:courseId" element={<Course />} />
+                        <Route path="addcategory" element={<AddCategory />} />
+                        <Route path="usermanagement" element={<UserManagement />} />
+                        <Route path="lessons" element={<AdminManageLessons />} />
                     </Route>
-                    <Route path="user/signup" element={<SignupUser />} />
-                    <Route path="user/signin" element={<SigninUser />} />
-                    <Route path="user/courses" element={<CoursesUser />} />
                 </Routes>
             </Router>
         </div>

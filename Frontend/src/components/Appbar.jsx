@@ -1,113 +1,73 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Typography, Button } from '@mui/material';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Layout, Menu, Avatar, Button, Dropdown, Input, Space } from 'antd';
+import {
+    HomeOutlined,
+    LoginOutlined,
+    UserAddOutlined,
+    ShoppingCartOutlined,
+    LogoutOutlined,
+    UserOutlined,
+} from '@ant-design/icons';
 
-function Appbar() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [userEmail, setUserEmail] = useState(null);
+const { Header } = Layout;
+const { Search } = Input;
 
-    let role = 'user'; // default role
-    if (location.pathname.startsWith('/admin')) {
-        role = 'admin';
-    }
-
-    const navigateTo = (path) => {
-        navigate(`/${role}${path}`);
-    };
-
-    useEffect(() => {
-        async function fetchUser() {
-            const token = localStorage.getItem("token");
-
-            const response = await fetch("http://localhost:3000/admin/me", {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
-            });
-
-            const data = await response.json();
-
-            if (data.username) {
-                setUserEmail(data.username);
-            }
-        }
-
-        fetchUser();
-    }, []);
-
-    const renderAdminButtons = () => {
-        return (
-            <div style={{ marginRight: 10 }}>
-                <Button
-                    variant={"contained"}
-                    onClick={() => {
-                        navigate("/admin/addcourse");
-                    }}
-                >
-                    Add Course
-                </Button>
-            </div>
-        );
-    };
-
-    const renderButtons = () => {
-        return (
-            <div style={{ display: "flex" }}>
-                {role === 'admin' ? renderAdminButtons() : null}
-                <div style={{ marginRight: 10 }}>
-                    <Button
-                        variant={"contained"}
-                        onClick={() => {
-                            localStorage.setItem("token", null);
-                            window.location = "/";
-                        }}
-                    >
-                        Logout
-                    </Button>
-                </div>
-            </div>
-        );
-    };
+const Appbar = ({ isLoggedIn, handleLogout }) => {
+    const menu = (
+        <Menu>
+            <Menu.Item key="0">
+                <Link to="/cart">My Cart</Link>
+            </Menu.Item>
+            <Menu.Item key="1">
+                <Link to="/wishlist">Wishlist</Link>
+            </Menu.Item>
+            <Menu.Item key="2">
+                <Link to="/purchased-courses">My Purchased Courses</Link>
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="3" onClick={handleLogout}>
+                Logout
+            </Menu.Item>
+        </Menu>
+    );
 
     return (
-        <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: 4
-        }}>
-            <div>
-                <Typography variant={"h6"}>LearnToo</Typography>
-            </div>
-            <div>
-                {userEmail ? renderButtons() : (
-                    <div style={{ display: "flex" }}>
-                        <div style={{ marginRight: 10 }}>
-                            <Button
-                                variant={"contained"}
-                                onClick={() => {
-                                    navigateTo("/signup");
-                                }}
-                            >
-                                Signup
+        <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 50px', background: 'white', height: '64px' }}>
+            <Link to="/" style={{ fontSize: '1.5em', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                LearnToo
+            </Link>
+            <Space align="center" size="large" style={{ height: '100%' }}>
+                <Search placeholder="Search courses" onSearch={value => console.log(value)} style={{ width: 400, verticalAlign: 'middle' }} enterButton />
+                <Menu mode="horizontal" selectable={false} style={{ borderBottom: 'none', lineHeight: '64px' }}>
+                    <Menu.Item key="home" icon={<HomeOutlined />}>
+                        <Link to="/">Home</Link>
+                    </Menu.Item>
+                    {!isLoggedIn ? (
+                        <Space>
+                            <Button type="primary" icon={<LoginOutlined />}>
+                                <Link to="/signin">Sign In</Link>
                             </Button>
-                        </div>
-                        <div>
-                            <Button
-                                variant={"contained"}
-                                onClick={() => {
-                                    navigateTo("/signin");
-                                }}
-                            >
-                                Signin
+                            <Button icon={<UserAddOutlined />}>
+                                <Link to="/signup">Sign Up</Link>
                             </Button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+                        </Space>
+                    ) : (
+                        <Space>
+                            <Dropdown overlay={menu} trigger={['click']}>
+                                <a onClick={e => e.preventDefault()}>
+                                    <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
+                                </a>
+                            </Dropdown>
+                            <Button icon={<ShoppingCartOutlined />}>
+                                <Link to="/cart">Cart</Link>
+                            </Button>
+                        </Space>
+                    )}
+                </Menu>
+            </Space>
+        </Header>
     );
-}
+};
 
 export default Appbar;

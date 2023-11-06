@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const Course = require('../models/courseModel');
+const Category = require('../models/categoryModel');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
 const Admin = require("../models/adminModel");
@@ -47,9 +48,28 @@ exports.login = async (req, res) => {
 };
 
 
-exports.getCourses = async (req, res) => {
-    const courses = await Course.find({ published: true });
-    res.json({ courses });
+// exports.getCourses = async (req, res) => {
+//     const courses = await Course.find({ published: true });
+//     res.json({ courses });
+// };
+
+exports.getCoursesByCategory = async (req, res) => {
+    try {
+        const courses = await Course.find({ published: true }).populate('category', 'name');
+        let coursesByCategory = {};
+        courses.map(course => {
+            const categoryName = course.category.name;
+            if (!coursesByCategory[categoryName]) {
+                coursesByCategory[categoryName] = [course];
+            } else {
+                coursesByCategory[categoryName].push(course);
+            }
+        });
+
+        res.json({ coursesByCategory });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching courses by category', error });
+    }
 };
 
 exports.purchaseCourse = async (req, res) => {

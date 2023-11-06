@@ -6,7 +6,7 @@ const adminController = require("../controllers/adminController");
 
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
-router.get('/courses', authenticateJwt, userController.getCourses);
+router.get('/courses', userController.getCoursesByCategory);
 router.post('/courses/:courseId', authenticateJwt, userController.purchaseCourse);
 router.post('/request-otp', userController.requestOtp);
 router.post('/verify-otp', userController.verifyOtp);

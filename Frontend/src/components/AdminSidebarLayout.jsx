@@ -19,7 +19,7 @@ const SidebarLayout = ({ toggleTheme, headerBackgroundColor }) => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        navigate('admin/signin');
+        navigate('/admin/signin', { replace: true });
         console.log('User logged out');
     };
 

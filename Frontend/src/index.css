@@ -51,3 +51,7 @@
 .toggle {
   margin-left: 15px;
 }
+
+.cardListStyle::-webkit-scrollbar {
+  display: none;
+}
