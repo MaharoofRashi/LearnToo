@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Carousel, Card } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const { Meta } = Card;
 
 const LandingPage = () => {
     const [coursesByCategory, setCoursesByCategory] = useState({});
     const [isHovered, setIsHovered] = useState({}); // State to manage hover status
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -130,7 +132,11 @@ const LandingPage = () => {
                         )}
                         <div id={containerId} style={cardListStyle} className="cardListStyle">
                             {courses.map(course => (
-                                <div key={course._id} style={cardStyle}>
+                                <div
+                                    key={course._id}
+                                    style={cardStyle}
+                                    onClick={() => navigate(`/course/${course._id}`)} // Add navigation here
+                                >
                                     <Card
                                         hoverable
                                         cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}

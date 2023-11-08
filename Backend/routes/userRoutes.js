@@ -11,5 +11,7 @@ router.post('/courses/:courseId', authenticateJwt, userController.purchaseCourse
 router.post('/request-otp', userController.requestOtp);
 router.post('/verify-otp', userController.verifyOtp);
 router.get('/purchasedCourses', authenticateJwt, userController.getPurchasedCourses);
+router.get('/course/details/:courseId', userController.getCourseById);
+router.get('/course/:courseId/lessons', userController.getLessons);
 
 module.exports = router;

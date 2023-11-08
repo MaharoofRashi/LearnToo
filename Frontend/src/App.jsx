@@ -17,6 +17,7 @@ import AdminManageLessons from "./components/Lessons.jsx";
 import Appbar from "./components/Appbar";
 import LandingPage from "./components/LandingPage";
 import UserLayout from "./components/UserLayout.jsx";
+import CourseDetailsPage from "./components/CourseDetailsPage.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -41,7 +42,7 @@ function App() {
                     <Route path="/signup" element={<UserLayout><SignupUser /></UserLayout>} />
                     <Route path="/signin" element={<UserLayout><SigninUser /></UserLayout>} />
                     <Route path="/courses" element={<UserLayout><CoursesUser /></UserLayout>} />
-
+                    <Route path="course/:courseId" element={<CourseDetailsPage />} />
                     <Route path="/admin/signin" element={<Signin />} />
                     <Route
                         path="/admin"

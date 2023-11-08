@@ -4,6 +4,7 @@ const Category = require('../models/categoryModel');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
 const Admin = require("../models/adminModel");
+const Lesson = require("../models/lessonModel");
 const SECRET = 'SECr3t';
 
 
@@ -139,3 +140,23 @@ exports.verifyOtp = async (req, res) => {
     }
 };
 
+exports.getCourseById = async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.courseId).populate('category', 'name');
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+        res.json({ course });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching course', error });
+    }
+};
+
+exports.getLessons = async (req, res) => {
+    try {
+        const lessons = await Lesson.find({ course: req.params.courseId });
+        res.json(lessons);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
