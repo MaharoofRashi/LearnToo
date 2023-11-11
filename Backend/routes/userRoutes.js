@@ -6,7 +6,7 @@ const authenticateJwt = require('../middleware/authenticateJwt');
 // Public routes
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
-router.get('/courses', userController.getCoursesByCategory); // Assuming this should be public
+router.get('/courses', userController.getCoursesByCategory);
 router.post('/request-otp', userController.requestOtp);
 router.post('/verify-otp', userController.verifyOtp);
 
@@ -19,4 +19,13 @@ router.post('/cart', authenticateJwt(['user']), userController.addToCart);
 router.get('/cart', authenticateJwt(['user']), userController.getCart);
 router.delete('/cart/:courseId', authenticateJwt(['user']), userController.removeFromCart);
 
+// New User Profile routes
+router.get('/profile', authenticateJwt(['user']), userController.getUserProfile);
+router.put('/profile', authenticateJwt(['user']), userController.updateUserProfile);
+router.post('/profile/address', authenticateJwt(['user']), userController.addAddress);
+router.put('/profile/address/:addressId', authenticateJwt(['user']), userController.updateAddress);
+router.delete('/profile/address/:addressId', authenticateJwt(['user']), userController.deleteAddress);
+router.post('/profile/education', authenticateJwt(['user']), userController.addEducation);
+router.put('/profile/education/:educationId', authenticateJwt(['user']), userController.updateEducation);
+router.delete('/profile/education/:educationId', authenticateJwt(['user']), userController.deleteEducation);
 module.exports = router;

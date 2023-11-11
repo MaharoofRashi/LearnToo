@@ -233,3 +233,152 @@ exports.removeFromCart = async (req, res) => {
         res.status(500).json({ message: 'Error removing course from cart', error });
     }
 }
+
+
+exports.addAddress = async (req, res) => {
+    const { userId } = req.user;
+    const { street, city, state, country, zip } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const newAddress = { street, city, state, country, zip };
+        user.addresses.push(newAddress);
+        await user.save();
+
+        res.status(200).json({ message: 'Address added successfully', addresses: user.addresses });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adding address', error });
+    }
+};
+
+exports.addEducation = async (req, res) => {
+    const { userId } = req.user;
+    const { degree, institution, year } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const newEducation = { degree, institution, year };
+        user.education.push(newEducation);
+        await user.save();
+
+        res.status(200).json({ message: 'Education added successfully', education: user.education });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adding education', error });
+    }
+};
+
+
+exports.getUserProfile = async (req, res) => {
+    const { userId } = req.user;
+
+    try {
+        const user = await User.findById(userId)
+            .select('-password -otp -isBlocked -purchasedCourses -cart');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ userProfile: user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching user profile', error });
+    }
+};
+
+exports.updateUserProfile = async (req, res) => {
+    const { userId } = req.user;
+    const updateData = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
+            .select('-password -otp -isBlocked -purchasedCourses -cart');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'Profile updated successfully', userProfile: user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating user profile', error });
+    }
+};
+
+exports.updateAddress = async (req, res) => {
+    const { userId } = req.user;
+    const { addressId } = req.params;
+    const updateData = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        const addressIndex = user.addresses.findIndex(address => address._id.toString() === addressId);
+
+        if (addressIndex === -1) {
+            return res.status(404).json({ message: 'Address not found' });
+        }
+
+        user.addresses[addressIndex] = { ...user.addresses[addressIndex].toObject(), ...updateData };
+        await user.save();
+
+        res.status(200).json({ message: 'Address updated successfully', addresses: user.addresses });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating address', error });
+    }
+};
+
+exports.deleteAddress = async (req, res) => {
+    const { userId } = req.user;
+    const { addressId } = req.params;
+
+    try {
+        const user = await User.findById(userId);
+        user.addresses = user.addresses.filter(address => address._id.toString() !== addressId);
+        await user.save();
+
+        res.status(200).json({ message: 'Address deleted successfully', addresses: user.addresses });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting address', error });
+    }
+};
+
+exports.updateEducation = async (req, res) => {
+    const { userId } = req.user;
+    const { educationId } = req.params;
+    const updateData = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        const educationIndex = user.education.findIndex(education => education._id.toString() === educationId);
+
+        if (educationIndex === -1) {
+            return res.status(404).json({ message: 'Education not found' });
+        }
+
+        user.education[educationIndex] = { ...user.education[educationIndex].toObject(), ...updateData };
+        await user.save();
+
+        res.status(200).json({ message: 'Education updated successfully', education: user.education });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating education', error });
+    }
+};
+
+exports.deleteEducation = async (req, res) => {
+    const { userId } = req.user;
+    const { educationId } = req.params;
+
+    try {
+        const user = await User.findById(userId);
+        user.education = user.education.filter(education => education._id.toString() !== educationId);
+        await user.save();
+
+        res.status(200).json({ message: 'Education deleted successfully', education: user.education });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting education', error });
+    }
+};
