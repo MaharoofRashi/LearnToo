@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import { Row, Col, Card, Typography, Spin, Breadcrumb, Button, Rate, Tag, Space, Divider, List, Input } from 'antd';
 import { HomeOutlined, ShoppingCartOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { cartState } from '../store/atoms/cartState';
+import { message } from 'antd';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -11,6 +14,7 @@ const CourseDetailsPage = () => {
     const [course, setCourse] = useState(null);
     const [lessons, setLessons] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [cart, setCart] = useRecoilState(cartState);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,6 +42,37 @@ const CourseDetailsPage = () => {
     const handlePurchase = () => {
         // Implement purchase logic
         console.log("Purchasing course", course.title);
+    };
+
+    const handleAddToCart = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            message.warning('Please login to add courses to cart');
+            navigate('/signin');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/user/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ courseId })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setCart(data.cart);
+                message.success('Course added to cart');
+            } else {
+                message.error(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            message.error('Failed to add course to cart');
+        }
     };
 
     return (
@@ -127,7 +162,7 @@ const CourseDetailsPage = () => {
                                 type="primary"
                                 size="large"
                                 icon={<ShoppingCartOutlined />}
-                                onClick={handlePurchase}
+                                onClick={handleAddToCart}
                                 style={{ width: '100%', marginBottom: '10px' }}
                             >
                                 Add to Cart
