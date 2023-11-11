@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
     password: String,
     otp: Number,
     isBlocked: { type: Boolean, default: false },
-    purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course'}]
+    purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course'}],
+    cart: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course'}]
 })
 
 module.exports = mongoose.model('User', userSchema);

@@ -15,5 +15,8 @@ router.post('/courses/:courseId', authenticateJwt(['user']), userController.purc
 router.get('/purchasedCourses', authenticateJwt(['user']), userController.getPurchasedCourses);
 router.get('/course/details/:courseId', userController.getCourseById);
 router.get('/course/:courseId/lessons', userController.getLessons);
+router.post('/cart', authenticateJwt(['user']), userController.addToCart);
+router.get('/cart', authenticateJwt(['user']), userController.getCart);
+router.delete('/cart/:courseId', authenticateJwt(['user']), userController.removeFromCart);
 
 module.exports = router;

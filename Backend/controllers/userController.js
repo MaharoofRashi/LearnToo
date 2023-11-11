@@ -177,3 +177,59 @@ exports.getLessons = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.addToCart = async (req, res) => {
+    const { courseId } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        if(!user){
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if(user.cart.includes(courseId)){
+            return res.status(400).json({ message: 'Course already in cart' });
+        }
+
+        user.cart.push(courseId);
+        await user.save();
+
+        res.status(200).json({ message: 'Course added to cart', cart: user.cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adding course to cart', error });
+    }
+}
+
+exports.getCart = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId).populate('cart');
+        if(!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ cart: user.cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching cart', error });
+    }
+}
+
+exports.removeFromCart = async (req, res) => {
+    const { courseId } = req.params;
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.cart = user.cart.filter(item => item.toString() !== courseId);
+        await user.save();
+
+        res.status(200).json({ message: 'Course removed from cart', cart: user.cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error removing course from cart', error });
+    }
+}
