@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const {response} = require("express");
 const nodemailer = require('nodemailer');
 const SECRET = 'SECr3t';
+const bcrypt = require('bcrypt');
 const User = require('../models/userModel')
 const Category = require('../models/categoryModel')
 const multer = require('multer');
@@ -54,38 +55,56 @@ exports.updateUserStatus = async (req, res) => {
     }
 };
 
-exports.signup = (req, res) => {
+exports.signup = async (req, res) => {
     const { username, password } = req.body;
 
-    function callback(admin) {
-        if (admin) {
-            res.status(403).json({ message: "Admin already exists."})
-        } else {
-            const obj = { username: username, password: password};
-            const newInstructor = new Admin(obj);
-            newInstructor.save();
-            const token = jwt.sign({username, role: 'instructor'}, SECRET, {expiresIn: '1h'});
-            res.json({ message: 'Admin created successfully', token});
+    try {
+        const adminExists = await Admin.findOne({ username });
+        if (adminExists) {
+            return res.status(409).json({ message: "Admin already exists." });
         }
-    }
 
-    Admin.findOne({username}).then(callback);
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newAdmin = new Admin({ username, password: hashedPassword });
+        const savedAdmin = await newAdmin.save();
+
+        const token = jwt.sign(
+            { id: savedAdmin._id, username, role: 'admin' },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+        res.status(201).json({ message: 'Admin created successfully', token });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating admin.' });
+    }
 };
 
 exports.login = async (req, res) => {
     const { username, password } = req.body;
-    const admin = await Admin.findOne({ username });
-    if (admin) {
-        if (admin.password === password) {
-            const token = jwt.sign({ username, role: 'admin'}, SECRET, {expiresIn: '1h'});
-            res.json({ message: 'Logged in successfully', token});
-        } else {
-            res.status(403).json({ message: 'Invalid password.'});
+
+    try {
+        const admin = await Admin.findOne({ username });
+        if (!admin) {
+            return res.status(404).json({ message: 'Username not found.' });
         }
-    } else {
-        res.status(403).json({ message: 'Username not found.'});
+
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.status(403).json({ message: 'Invalid password.' });
+        }
+
+        const token = jwt.sign(
+            { id: admin._id, username, role: 'admin' },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.json({ message: 'Logged in successfully', token });
+    } catch (error) {
+        res.status(500).json({ message: 'Login error.' });
     }
-}
+};
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {

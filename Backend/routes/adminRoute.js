@@ -4,29 +4,31 @@ const adminController = require('../controllers/adminController');
 const authenticateJwt = require('../middleware/authenticateJwt')
 const { uploadCourseImage, updateCourse } = require('../controllers/adminController');
 
-
+// Public routes
 router.post('/signup', adminController.signup);
 router.post('/login', adminController.login);
-router.get('/users', authenticateJwt, adminController.getAllUsers)
-router.put('/users/:userId', authenticateJwt, adminController.updateUserStatus)
 router.post('/request-otp', adminController.requestOtp);
 router.post('/verify-otp', adminController.verifyOtp);
-router.post('/courses', authenticateJwt, adminController.courses);
+
+// Admin-only routes
+router.get('/users', authenticateJwt(['admin']), adminController.getAllUsers);
+router.put('/users/:userId', authenticateJwt(['admin']), adminController.updateUserStatus);
+router.post('/courses', authenticateJwt(['admin']), adminController.courses);
 // router.put('/course/:courseId', authenticateJwt, adminController.updateCourse)
-router.put('/course/:courseId', authenticateJwt , uploadCourseImage, updateCourse);
-router.put('/courses/:courseId/publish', authenticateJwt, adminController.publishCourse);
-router.put('/courses/:courseId/unpublish', authenticateJwt, adminController.unpublishCourse);
-router.get('/courses', authenticateJwt, adminController.getAllCourses);
-router.get('/me', authenticateJwt, adminController.me)
-router.delete('/courses/:courseId', authenticateJwt, adminController.deleteCourse);
-router.post('/categories', authenticateJwt, adminController.createCategory)
-router.get('/categories', authenticateJwt, adminController.getCategory);
-router.put('/categories/:id', authenticateJwt, adminController.updateCategory);
-router.delete('/categories/:id', authenticateJwt, adminController.deleteCategory)
-router.post('/courses/:courseId/lessons', authenticateJwt, adminController.addLesson);
-router.get('/courses/:courseId/lessons', authenticateJwt, adminController.getLessons);
-router.put('/lessons/:lessonId', authenticateJwt, adminController.editLesson);
-router.delete('/lessons/:lessonId', authenticateJwt, adminController.deleteLesson);
+router.put('/course/:courseId', authenticateJwt(['admin']), uploadCourseImage, updateCourse);
+router.put('/courses/:courseId/publish', authenticateJwt(['admin']), adminController.publishCourse);
+router.put('/courses/:courseId/unpublish', authenticateJwt(['admin']), adminController.unpublishCourse);
+router.get('/courses', authenticateJwt(['admin']), adminController.getAllCourses);
+router.get('/me', authenticateJwt(['admin']), adminController.me);
+router.delete('/courses/:courseId', authenticateJwt(['admin']), adminController.deleteCourse);
+router.post('/categories', authenticateJwt(['admin']), adminController.createCategory);
+router.get('/categories', authenticateJwt(['admin']), adminController.getCategory);
+router.put('/categories/:id', authenticateJwt(['admin']), adminController.updateCategory);
+router.delete('/categories/:id', authenticateJwt(['admin']), adminController.deleteCategory);
+router.post('/courses/:courseId/lessons', authenticateJwt(['admin']), adminController.addLesson);
+router.get('/courses/:courseId/lessons', authenticateJwt(['admin']), adminController.getLessons);
+router.put('/lessons/:lessonId', authenticateJwt(['admin']), adminController.editLesson);
+router.delete('/lessons/:lessonId', authenticateJwt(['admin']), adminController.deleteLesson);
 
 
 module.exports = router;

@@ -3,7 +3,7 @@ const Course = require('../models/courseModel');
 const Category = require('../models/categoryModel');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
-const Admin = require("../models/adminModel");
+const bcrypt = require('bcrypt');
 const Lesson = require("../models/lessonModel");
 const SECRET = 'SECr3t';
 
@@ -11,8 +11,8 @@ const SECRET = 'SECr3t';
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'testing4dev0@gmail.com',
-        pass: 'ktnt wqdi zbso eqlx'
+        user: process.env.NODEMAILER_USER_NAME,
+        pass: process.env.NODEMAILER_PASSWORD
     }
 });
 
@@ -20,30 +20,47 @@ const transporter = nodemailer.createTransport({
 let otpStore = {};
 
 exports.signup = async (req, res) => {
-    const { username, password, name, otp } = req.body;
+    const { username, password, name } = req.body;
     let user = await User.findOne({ username });
 
     if (user) {
-        return res.status(403).json({ message: 'User already exists' });
+        return res.status(409).json({ message: 'User already exists' });
     }
 
-    user = new User({ username, password, name });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user = new User({ username, password: hashedPassword, name });
     await user.save();
-    const token = jwt.sign({ username, role: 'user' }, SECRET, { expiresIn: '1h' });
+
+    const token = jwt.sign(
+        { id: user._id, username, role: 'user' },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
     res.status(201).json({ message: 'User created successfully', token });
     delete otpStore[username];
 };
 
 exports.login = async (req, res) => {
     const { username, password } = req.body;
-    const user = await User.findOne({ username, password });
+    const user = await User.findOne({ username });
+
     if (user) {
-        // Check if the user is blocked
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(403).json({ message: 'Invalid username or password.' });
+        }
+
         if (user.isBlocked) {
             return res.status(403).json({ message: 'User is blocked.' });
         }
 
-        const token = jwt.sign({ username, role: 'user' }, SECRET, { expiresIn: '1h' });
+        const token = jwt.sign(
+            { id: user._id, username, role: 'user' },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
         res.json({ message: 'Logged in successfully', token });
     } else {
         res.status(403).json({ message: 'Invalid username/password or blocked by admin' });

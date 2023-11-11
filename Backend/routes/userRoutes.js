@@ -2,15 +2,17 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const authenticateJwt = require('../middleware/authenticateJwt');
-const adminController = require("../controllers/adminController");
 
+// Public routes
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
-router.get('/courses', userController.getCoursesByCategory);
-router.post('/courses/:courseId', authenticateJwt, userController.purchaseCourse);
+router.get('/courses', userController.getCoursesByCategory); // Assuming this should be public
 router.post('/request-otp', userController.requestOtp);
 router.post('/verify-otp', userController.verifyOtp);
-router.get('/purchasedCourses', authenticateJwt, userController.getPurchasedCourses);
+
+// User-only routes
+router.post('/courses/:courseId', authenticateJwt(['user']), userController.purchaseCourse);
+router.get('/purchasedCourses', authenticateJwt(['user']), userController.getPurchasedCourses);
 router.get('/course/details/:courseId', userController.getCourseById);
 router.get('/course/:courseId/lessons', userController.getLessons);
 
