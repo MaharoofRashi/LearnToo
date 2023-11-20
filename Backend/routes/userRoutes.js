@@ -25,6 +25,7 @@ router.put('/profile', authenticateJwt(['user']), userController.updateUserProfi
 router.post('/profile/address', authenticateJwt(['user']), userController.addAddress);
 router.put('/profile/address/:addressId', authenticateJwt(['user']), userController.updateAddress);
 router.delete('/profile/address/:addressId', authenticateJwt(['user']), userController.deleteAddress);
+router.put('/profile/set-default-address', authenticateJwt(['user']), userController.setDefaultAddress);
 router.post('/profile/education', authenticateJwt(['user']), userController.addEducation);
 router.put('/profile/education/:educationId', authenticateJwt(['user']), userController.updateEducation);
 router.delete('/profile/education/:educationId', authenticateJwt(['user']), userController.deleteEducation);

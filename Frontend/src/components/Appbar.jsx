@@ -50,7 +50,7 @@ const Appbar = () => {
     const menu = (
         <Menu>
             <Menu.Item key="0">
-                <Link to="/cart">My Profile</Link>
+                <Link to="/profile">My Profile</Link>
             </Menu.Item>
             <Menu.Item key="1">
                 <Link to="/wishlist">Wishlist</Link>

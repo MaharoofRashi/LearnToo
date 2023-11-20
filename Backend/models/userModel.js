@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
         country: String,
         zip: String
     }],
+    defaultAddress: mongoose.Schema.Types.ObjectId,
     education: [{
         degree: String,
         institution: String,

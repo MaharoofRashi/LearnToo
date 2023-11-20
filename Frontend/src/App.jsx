@@ -14,11 +14,11 @@ import { useRecoilState } from 'recoil';
 import { darkThemeState } from "./store/atoms/darkThemeState";
 import AddCategory from "./components/AddCategory.jsx";
 import AdminManageLessons from "./components/Lessons.jsx";
-import Appbar from "./components/Appbar";
 import LandingPage from "./components/LandingPage";
 import UserLayout from "./components/UserLayout.jsx";
 import CourseDetailsPage from "./components/CourseDetailsPage.jsx";
 import Cart from "./components/Cart.jsx";
+import UserProfilePage from "./components/UserProfilePage.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -36,7 +36,7 @@ function App() {
     } = theme.useToken();
 
     return (
-        <div style={{ backgroundColor: darkTheme ? '#000' : '#fff' }}>
+        <div style={{ backgroundColor: darkTheme ? 'rgb(240,242,245)' : '' }}>
             <Router>
                 <Routes>
                     <Route path="/" element={<UserLayout><LandingPage /></UserLayout>} />
@@ -44,6 +44,7 @@ function App() {
                     <Route path="/signin" element={<UserLayout><SigninUser /></UserLayout>} />
                     <Route path="/courses" element={<UserLayout><CoursesUser /></UserLayout>} />
                     <Route path="/cart" element={<UserLayout><Cart /></UserLayout>} />
+                    <Route path="/profile" element={<UserLayout><UserProfilePage /></UserLayout>} />
                     <Route path="course/:courseId" element={<CourseDetailsPage />} />
                     <Route path="/admin/signin" element={<Signin />} />
                     <Route

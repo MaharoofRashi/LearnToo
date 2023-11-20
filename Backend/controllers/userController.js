@@ -236,7 +236,7 @@ exports.removeFromCart = async (req, res) => {
 
 
 exports.addAddress = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { street, city, state, country, zip } = req.body;
 
     try {
@@ -256,7 +256,7 @@ exports.addAddress = async (req, res) => {
 };
 
 exports.addEducation = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { degree, institution, year } = req.body;
 
     try {
@@ -277,23 +277,31 @@ exports.addEducation = async (req, res) => {
 
 
 exports.getUserProfile = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
 
     try {
         const user = await User.findById(userId)
-            .select('-password -otp -isBlocked -purchasedCourses -cart');
+            .select('-password -otp -isBlocked -purchasedCourses -cart')
+            .populate('defaultAddress');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+        const userProfile = user.toObject();
+        userProfile.addresses = userProfile.addresses.map(address => ({
+            ...address,
+            isDefault: address._id.equals(user.defaultAddress)
+        }));
 
-        res.status(200).json({ userProfile: user });
+        res.status(200).json({ userProfile });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error fetching user profile', error });
     }
 };
 
+
 exports.updateUserProfile = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const updateData = req.body;
     try {
         const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
@@ -310,7 +318,7 @@ exports.updateUserProfile = async (req, res) => {
 };
 
 exports.updateAddress = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { addressId } = req.params;
     const updateData = req.body;
 
@@ -331,8 +339,33 @@ exports.updateAddress = async (req, res) => {
     }
 };
 
+exports.setDefaultAddress = async (req, res) => {
+    const userId = req.user.id;
+    const { addressId } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const addressExists = user.addresses.some(address => address._id.toString() === addressId);
+        if (!addressExists) {
+            return res.status(404).json({ message: 'Address not found' });
+        }
+
+        user.defaultAddress = addressId;
+        await user.save();
+
+        res.status(200).json({ message: 'Default address set successfully', defaultAddress: addressId });
+    } catch (error) {
+        res.status(500).json({ message: 'Error setting default address', error });
+    }
+};
+
+
 exports.deleteAddress = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { addressId } = req.params;
 
     try {
@@ -347,7 +380,7 @@ exports.deleteAddress = async (req, res) => {
 };
 
 exports.updateEducation = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { educationId } = req.params;
     const updateData = req.body;
 
@@ -369,7 +402,7 @@ exports.updateEducation = async (req, res) => {
 };
 
 exports.deleteEducation = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { educationId } = req.params;
 
     try {
