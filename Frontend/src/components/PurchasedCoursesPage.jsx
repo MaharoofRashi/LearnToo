@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, List, Typography, notification, Image } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
 const PurchasedCoursesPage = () => {
+    const navigate = useNavigate();
     const [purchasedCourses, setPurchasedCourses] = useState([]);
 
     useEffect(() => {
@@ -33,6 +35,7 @@ const PurchasedCoursesPage = () => {
                     <List.Item key={course._id}>
                         <Card
                             hoverable
+                            onClick={() => navigate(`/course-content/${course._id}`)}
                             cover={<Image alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '220px', objectFit: 'cover' }}/>}
                             style={{ height: '340px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                         >

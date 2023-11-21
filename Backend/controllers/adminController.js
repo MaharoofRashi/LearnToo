@@ -333,7 +333,7 @@ async function uploadToS3(file, fileName) {
         });
 
         await parallelUploads3.done();
-        return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${fileName}`;
+        return `https://dia2leqf5pyi6.cloudfront.net/uploads/${fileName}`;
     } catch (error) {
         console.error('Error uploading to S3:', error);
         throw new Error('Error uploading to S3');

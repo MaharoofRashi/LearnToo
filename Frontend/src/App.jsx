@@ -21,6 +21,7 @@ import Cart from "./components/Cart.jsx";
 import UserProfilePage from "./components/UserProfilePage.jsx";
 import CheckoutPage from "./components/CheckoutPage.jsx";
 import PurchasedCoursesPage from "./components/PurchasedCoursesPage.jsx";
+import CourseContentPage from "./components/CourseContentPage.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -50,6 +51,7 @@ function App() {
                     <Route path="/checkout" element={<UserLayout><CheckoutPage /></UserLayout>} />
                     <Route path="course/:courseId" element={<CourseDetailsPage />} />
                     <Route path="/purchased-courses" element={<UserLayout><PurchasedCoursesPage /></UserLayout>} />
+                    <Route path="/course-content/:courseId" element={<UserLayout><CourseContentPage /></UserLayout>} />
 
                     <Route path="/admin/signin" element={<Signin />} />
                     <Route
