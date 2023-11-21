@@ -6,6 +6,8 @@ const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
 const Lesson = require("../models/lessonModel");
 const SECRET = 'SECr3t';
+const Razorpay = require('razorpay');
+const crypto = require("crypto");
 
 
 const transporter = nodemailer.createTransport({
@@ -14,6 +16,11 @@ const transporter = nodemailer.createTransport({
         user: process.env.NODEMAILER_USER_NAME,
         pass: process.env.NODEMAILER_PASSWORD
     }
+});
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
 
@@ -415,3 +422,93 @@ exports.deleteEducation = async (req, res) => {
         res.status(500).json({ message: 'Error deleting education', error });
     }
 };
+
+
+exports.createOrder = async (req, res) => {
+    const { amount } = req.body;
+
+    try {
+        const options = {
+            amount: amount,
+            currency: "INR",
+            receipt: "receipt#1"
+        };
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Error creating Razorpay order");
+    }
+}
+
+// exports.verifyPayment = async (req, res) => {
+//     const { orderCreationId, razorpayPaymentId, razorpaySignature, courseId } = req.body;
+//
+//     const generateSignature = (orderCreationId, razorpayPaymentId) => {
+//         const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+//         hmac.update(`${orderCreationId}|${razorpayPaymentId}`);
+//         return hmac.digest('hex');
+//     };
+//
+//     const generatedSignature = generateSignature(orderCreationId, razorpayPaymentId);
+//
+//     if (generatedSignature === razorpaySignature) {
+//         try {
+//             const userId = req.user.id;
+//             await User.findByIdAndUpdate(
+//                 userId,
+//                 { $addToSet: { purchasedCourses: courseId } },
+//                 { new: true }
+//             );
+//
+//             res.status(200).json({ message: "Payment verified successfully and course added to user profile" });
+//         } catch (error) {
+//             console.error("Error updating user's purchased courses", error);
+//             res.status(500).json({ message: 'Error updating purchased courses', error: error.message });
+//         }
+//     } else {
+//         res.status(400).json({ message: "Invalid signature sent" });
+//     }
+// };
+
+
+exports.verifyPayment = async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, courseId } = req.body;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    const expectedSignature = crypto.createHmac('sha256', key_secret)
+        .update(razorpay_order_id + "|" + razorpay_payment_id)
+        .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+        try {
+            const userId = req.user.id;
+            await User.findByIdAndUpdate(userId, { $addToSet: { purchasedCourses: courseId } });
+            res.status(200).json({ verified: true, message: "Payment verified successfully" });
+        } catch (error) {
+            console.error("Error in Verification:", error);
+            res.status(500).json({ message: "Error updating user's purchased courses", error: error.message });
+        }
+    } else {
+        res.status(400).json({ message: "Invalid signature sent" });
+    }
+};
+
+exports.clearPurchasedCoursesFromCart = async (req, res) => {
+    const userId = req.user.id;
+    const purchasedCourseIds = req.body.purchasedCourseIds;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        user.cart = user.cart.filter(courseId => !purchasedCourseIds.includes(courseId.toString()));
+        await user.save();
+
+        res.status(200).json({ message: 'Purchased courses cleared from cart', cart: user.cart });
+    } catch (error) {
+        res.status(500).json({ message: 'Error clearing purchased courses from cart', error });
+    }
+};
+
+

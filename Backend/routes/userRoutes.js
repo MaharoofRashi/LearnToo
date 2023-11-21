@@ -29,4 +29,9 @@ router.put('/profile/set-default-address', authenticateJwt(['user']), userContro
 router.post('/profile/education', authenticateJwt(['user']), userController.addEducation);
 router.put('/profile/education/:educationId', authenticateJwt(['user']), userController.updateEducation);
 router.delete('/profile/education/:educationId', authenticateJwt(['user']), userController.deleteEducation);
+
+
+router.post('/create-order', authenticateJwt(['user']), userController.createOrder);
+router.post('/verify-payment', authenticateJwt(['user']), userController.verifyPayment);
+router.post('/clear-cart', authenticateJwt(['user']), userController.clearPurchasedCoursesFromCart);
 module.exports = router;

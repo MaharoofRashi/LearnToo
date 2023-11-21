@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRecoilState } from 'recoil';
+import { useNavigate } from 'react-router-dom';
 import { cartState } from '../store/atoms/cartState';
 import { List, Button, Card, Space, Typography, Image, Checkbox, Divider, Row, Col, message } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
@@ -7,6 +8,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 const { Title, Text } = Typography;
 
 const CartPage = () => {
+    const navigate = useNavigate();
     const [cart, setCart] = useRecoilState(cartState);
     const initialSelectedCourses = JSON.parse(localStorage.getItem('selectedCourses')) || [];
     const [selectedCourses, setSelectedCourses] = useState(initialSelectedCourses);
@@ -88,10 +90,8 @@ const CartPage = () => {
     };
 
     const handleProceedToBuy = () => {
-        // Logic to proceed to buy selected courses
-        console.log('Selected courses to buy:', selectedCourses);
-        // Redirect to payment or checkout page
-        // ...
+        const selectedCourseIdsQuery = selectedCourses.join(',');
+        navigate(`/checkout?selectedCourses=${selectedCourseIdsQuery}`);
     };
 
     const isCourseSelected = (courseId) => selectedCourses.includes(courseId);

@@ -14,6 +14,7 @@ const CourseDetailsPage = () => {
     const [course, setCourse] = useState(null);
     const [lessons, setLessons] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isPurchased, setIsPurchased] = useState(false);
     const [cart, setCart] = useRecoilState(cartState);
     const navigate = useNavigate();
 
@@ -35,8 +36,31 @@ const CourseDetailsPage = () => {
             }
         };
 
+        const fetchUserProfile = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/user/profile', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    if (data.userProfile && Array.isArray(data.userProfile.purchasedCourses)) {
+                        const purchasedCourseIds = data.userProfile.purchasedCourses.map(course => course._id);
+                        setIsPurchased(purchasedCourseIds.includes(courseId));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        };
+
         fetchCourseDetails();
+        fetchUserProfile();
     }, [courseId]);
+
+    const handleBuyNow = () => {
+        navigate(`/checkout?courseId=${courseId}`);
+    };
 
     // Function to handle course purchase
     const handlePurchase = () => {
@@ -152,28 +176,52 @@ const CourseDetailsPage = () => {
                             <Text strong style={{ fontSize: '24px', color: '#fa8c16' }}>
                                 ${course.price.toFixed(2)}
                             </Text>
-                            <div style={{ marginBottom: '20px' }}>
-                                <Input placeholder="Coupon code" style={{ marginBottom: '10px' }} />
-                                <Button type="default" style={{ width: '100%' }}>
-                                    Apply Coupon
-                                </Button>
-                            </div>
-                            <Button
-                                type="primary"
-                                size="large"
-                                icon={<ShoppingCartOutlined />}
-                                onClick={handleAddToCart}
-                                style={{ width: '100%', marginBottom: '10px' }}
-                            >
-                                Add to Cart
-                            </Button>
-                            <Button
-                                type="danger"
-                                size="large"
-                                style={{ width: '100%' }}
-                            >
-                                Buy Now
-                            </Button>
+                            {!isPurchased && (
+                                <>
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <Input placeholder="Coupon code" style={{ marginBottom: '10px' }} />
+                                        <Button type="default" style={{ width: '100%' }}>
+                                            Apply Coupon
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        type="primary"
+                                        size="large"
+                                        icon={<ShoppingCartOutlined />}
+                                        onClick={handleAddToCart}
+                                        style={{ width: '100%', marginBottom: '10px' }}
+                                    >
+                                        Add to Cart
+                                    </Button>
+                                    <Button
+                                        type="danger"
+                                        size="large"
+                                        style={{ width: '100%' }}
+                                        onClick={handleBuyNow}
+                                    >
+                                        Buy Now
+                                    </Button>
+                                </>
+                            )}
+                            {isPurchased && (
+                                <>
+                                    <Button
+                                        type="primary"
+                                        size="large"
+                                        style={{ width: '100%', marginBottom: '10px' }}
+                                        onClick={() => navigate(`/course/${courseId}`)}
+                                    >
+                                        Go to Course
+                                    </Button>
+                                    <Button
+                                        danger
+                                        size="large"
+                                        style={{ width: '100%' }}
+                                    >
+                                        Cancel Course
+                                    </Button>
+                                </>
+                            )}
                             <Divider />
                             <Space direction="vertical" size="small">
                                 <Button type="link" style={{ padding: 0 }}>
