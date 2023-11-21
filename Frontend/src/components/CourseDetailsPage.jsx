@@ -45,7 +45,7 @@ const CourseDetailsPage = () => {
                     });
                     const data = await response.json();
                     if (data.userProfile && Array.isArray(data.userProfile.purchasedCourses)) {
-                        const purchasedCourseIds = data.userProfile.purchasedCourses.map(course => course._id);
+                        const purchasedCourseIds = data.userProfile.purchasedCourses;
                         setIsPurchased(purchasedCourseIds.includes(courseId));
                     }
                 } catch (error) {

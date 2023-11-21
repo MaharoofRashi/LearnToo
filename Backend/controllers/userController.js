@@ -288,7 +288,7 @@ exports.getUserProfile = async (req, res) => {
 
     try {
         const user = await User.findById(userId)
-            .select('-password -otp -isBlocked -purchasedCourses -cart')
+            .select('-password -otp -isBlocked -cart')
             .populate('defaultAddress');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
