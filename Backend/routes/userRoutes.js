@@ -29,6 +29,7 @@ router.put('/profile/set-default-address', authenticateJwt(['user']), userContro
 router.post('/profile/education', authenticateJwt(['user']), userController.addEducation);
 router.put('/profile/education/:educationId', authenticateJwt(['user']), userController.updateEducation);
 router.delete('/profile/education/:educationId', authenticateJwt(['user']), userController.deleteEducation);
+router.post('/create-cancellation-request', authenticateJwt(['user']), userController.createCancellationRequest);
 
 
 router.post('/create-order', authenticateJwt(['user']), userController.createOrder);

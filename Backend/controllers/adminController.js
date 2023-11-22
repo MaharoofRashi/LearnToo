@@ -13,6 +13,7 @@ const path = require('path');
 const { S3Client } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const CancellationRequest = require('../models/cancellationModel');
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -471,4 +472,35 @@ exports.deleteLesson = async (req, res) => {
     }
 };
 
+
+exports.updateCancellationRequest = async (req, res) => {
+    const { requestId, status } = req.body;
+
+    const request = await CancellationRequest.findById(requestId);
+    if (!request) {
+        return res.status(404).json({ message: 'Request not found.' });
+    }
+
+    request.status = status;
+    await request.save();
+
+    if (status === 'accepted') {
+        const user = await User.findById(request.userId);
+        user.purchasedCourses.pull(request.courseId);
+        await user.save();
+    }
+
+    res.json({ message: `Cancellation request ${status}.` });
+};
+
+
+exports.getAllCancellationRequests = async (req, res) => {
+    try {
+        const requests = await CancellationRequest.find({}).populate('userId', 'username');
+        res.json(requests);
+    } catch (error) {
+        console.error('Error fetching cancellation requests:', error);
+        res.status(500).json({ message: 'Error fetching requests' });
+    }
+};
 

@@ -8,6 +8,7 @@ const Lesson = require("../models/lessonModel");
 const SECRET = 'SECr3t';
 const Razorpay = require('razorpay');
 const crypto = require("crypto");
+const CancellationRequest = require('../models/cancellationModel');
 
 
 const transporter = nodemailer.createTransport({
@@ -511,4 +512,41 @@ exports.clearPurchasedCoursesFromCart = async (req, res) => {
     }
 };
 
+
+exports.createCancellationRequest = async (req, res) => {
+    const { courseId, reason } = req.body;
+    const userId = req.user.id;
+
+    const existingRequest = await CancellationRequest.findOne({
+        userId,
+        courseId,
+        status: { $in: ['pending', 'rejected', 'accepted'] }
+    });
+
+    if (existingRequest) {
+        let message = '';
+        switch(existingRequest.status) {
+            case 'pending':
+                message = 'A cancellation request for this course is already pending.';
+                break;
+            case 'rejected':
+                message = 'Your previous cancellation request for this course was rejected.';
+                break;
+            case 'accepted':
+                message = 'Your cancellation request for this course has already been accepted.';
+                break;
+        }
+        return res.status(400).json({ message });
+    }
+
+    const newRequest = new CancellationRequest({
+        userId,
+        courseId,
+        reason,
+        status: 'pending'
+    });
+
+    await newRequest.save();
+    res.status(201).json({ message: 'Cancellation request submitted successfully.' });
+};
 

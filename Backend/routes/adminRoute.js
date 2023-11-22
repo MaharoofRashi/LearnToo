@@ -29,6 +29,8 @@ router.post('/courses/:courseId/lessons', authenticateJwt(['admin']), adminContr
 router.get('/courses/:courseId/lessons', authenticateJwt(['admin']), adminController.getLessons);
 router.put('/lessons/:lessonId', authenticateJwt(['admin']), adminController.editLesson);
 router.delete('/lessons/:lessonId', authenticateJwt(['admin']), adminController.deleteLesson);
+router.post('/update-cancellation-request', authenticateJwt(['admin']), adminController.updateCancellationRequest);
+router.get('/cancellation-requests', authenticateJwt(['admin']), adminController.getAllCancellationRequests);
 
 
 module.exports = router;
