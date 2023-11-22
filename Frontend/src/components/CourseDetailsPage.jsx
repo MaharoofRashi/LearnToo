@@ -209,7 +209,7 @@ const CourseDetailsPage = () => {
                                         type="primary"
                                         size="large"
                                         style={{ width: '100%', marginBottom: '10px' }}
-                                        onClick={() => navigate(`/course/${courseId}`)}
+                                        onClick={() => navigate(`/course-content/${course._id}`)}
                                     >
                                         Go to Course
                                     </Button>
