@@ -22,6 +22,7 @@ import UserProfilePage from "./components/UserProfilePage.jsx";
 import CheckoutPage from "./components/CheckoutPage.jsx";
 import PurchasedCoursesPage from "./components/PurchasedCoursesPage.jsx";
 import CourseContentPage from "./components/CourseContentPage.jsx";
+import AdminCancellationRequestsPage from "./components/AdminCancellationRequestsPage.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -69,6 +70,7 @@ function App() {
                         <Route path="addcategory" element={<AddCategory />} />
                         <Route path="usermanagement" element={<UserManagement />} />
                         <Route path="lessons" element={<AdminManageLessons />} />
+                        <Route path="cancellation-requests" element={<AdminCancellationRequestsPage />} />
                     </Route>
                 </Routes>
             </Router>

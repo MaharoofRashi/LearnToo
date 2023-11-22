@@ -550,3 +550,25 @@ exports.createCancellationRequest = async (req, res) => {
     res.status(201).json({ message: 'Cancellation request submitted successfully.' });
 };
 
+// exports.checkCancellationStatus = async (req, res) => {
+//     const { courseId } = req.params;
+//     const userId = req.user.id;
+//
+//
+//     try {
+//         const request = await CancellationRequest.findOne({
+//             userId,
+//             courseId,
+//             status: { $in: ['pending', 'rejected', 'accepted'] }
+//         });
+//
+//         if (request) {
+//             res.json({ status: request.status, message: 'Cancellation request found.' });
+//         } else {
+//             res.json({ status: 'none', message: 'No cancellation request found.' });
+//         }
+//     } catch (error) {
+//         console.error('Error fetching cancellation status:', error);
+//         res.status(500).json({ message: 'Error checking cancellation status' });
+//     }
+// };

@@ -31,8 +31,8 @@ const AdminMenuList = ({ darkTheme }) => {
             case 'lessons':
                 navigate('/admin/lessons');
                 break;
-            case 'subtask-2':
-                // navigate to your subtask-2 route
+            case 'cancellationRequests':
+                navigate('/admin/cancellation-requests');
                 break;
             case 'progress':
                 navigate('/admin/progress');
@@ -65,14 +65,17 @@ const AdminMenuList = ({ darkTheme }) => {
             <Menu.Item key='userManagement' icon={<UserOutlined />}>
                 Users
             </Menu.Item>
-            <Menu.SubMenu key='tasks' icon={<BarsOutlined />} title="Tasks">
-                <Menu.Item key='task-1'>Task 1</Menu.Item>
-                <Menu.Item key='task-2'>Task 2</Menu.Item>
-                <Menu.SubMenu key='subtasks' title="SubTasks">
-                    <Menu.Item key='subtask-1'>SubTask 1</Menu.Item>
-                    <Menu.Item key='subtask-2'>SubTask 2</Menu.Item>
-                </Menu.SubMenu>
-            </Menu.SubMenu>
+            <Menu.Item key='cancellationRequests' icon={<UserOutlined />}>
+                Requests
+            </Menu.Item>
+            {/*<Menu.SubMenu key='tasks' icon={<BarsOutlined />} title="Tasks">*/}
+            {/*    <Menu.Item key='task-1'>Task 1</Menu.Item>*/}
+            {/*    <Menu.Item key='task-2'>Task 2</Menu.Item>*/}
+            {/*    <Menu.SubMenu key='subtasks' title="SubTasks">*/}
+            {/*        <Menu.Item key='subtask-1'>SubTask 1</Menu.Item>*/}
+            {/*        <Menu.Item key='subtask-2'>SubTask 2</Menu.Item>*/}
+            {/*    </Menu.SubMenu>*/}
+            {/*</Menu.SubMenu>*/}
             <Menu.Item key='progress' icon={<AreaChartOutlined />}>
                 Progress
             </Menu.Item>

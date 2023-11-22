@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Row, Col, Card, Typography, Spin, Breadcrumb, Button, Rate, Tag, Space, Divider, List, Input } from 'antd';
+import { Row, Col, Card, Typography, Spin, Breadcrumb, Button, Rate, Tag, Space, Divider, List, Input, Modal, Form } from 'antd';
 import { HomeOutlined, ShoppingCartOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
@@ -17,6 +17,8 @@ const CourseDetailsPage = () => {
     const [isPurchased, setIsPurchased] = useState(false);
     const [cart, setCart] = useRecoilState(cartState);
     const navigate = useNavigate();
+    const [isCancellationModalVisible, setIsCancellationModalVisible] = useState(false);
+    const [cancellationReason, setCancellationReason] = useState('');
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
@@ -98,6 +100,48 @@ const CourseDetailsPage = () => {
             message.error('Failed to add course to cart');
         }
     };
+
+    const handleCancelCourse = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:3000/user/create-cancellation-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ courseId, reason: cancellationReason })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                message.success('Cancellation request submitted successfully.');
+            } else {
+                message.error(data.message);
+            }
+        } catch (error) {
+            message.error('Failed to submit cancellation request.');
+        }
+        setIsCancellationModalVisible(false);
+    };
+
+    // const checkCancellationStatus = async () => {
+    //     try {
+    //         const token = localStorage.getItem('token');
+    //         // Assuming you have an endpoint to check the status
+    //         const response = await fetch(`http://localhost:3000/user/check-cancellation-status/${courseId}`, {
+    //             headers: { 'Authorization': `Bearer ${token}` }
+    //         });
+    //         const data = await response.json();
+    //         if (data.status === 'rejected') {
+    //             message.error('Your previous cancellation request for this course was rejected.');
+    //         } else {
+    //             setIsCancellationModalVisible(true);
+    //         }
+    //     } catch (error) {
+    //         message.error('Error checking cancellation status.');
+    //     }
+    // };
+
 
     return (
         <div style={{ padding: '24px', backgroundColor: 'rgb(240,242,245)', minHeight: '100vh' }}>
@@ -217,6 +261,7 @@ const CourseDetailsPage = () => {
                                         danger
                                         size="large"
                                         style={{ width: '100%' }}
+                                        onClick={() => setIsCancellationModalVisible(true)}
                                     >
                                         Cancel Course
                                     </Button>
@@ -231,6 +276,18 @@ const CourseDetailsPage = () => {
                             </Space>
                         </Space>
                     </div>
+                    <Modal
+                        title="Cancel Course"
+                        visible={isCancellationModalVisible}
+                        onOk={handleCancelCourse}
+                        onCancel={() => setIsCancellationModalVisible(false)}
+                    >
+                        <Input.TextArea
+                            rows={4}
+                            placeholder="Enter reason for cancellation"
+                            onChange={(e) => setCancellationReason(e.target.value)}
+                        />
+                    </Modal>
                 </div>
             ) : (
                 <Typography style={{ textAlign: 'center' }}>No course details available.</Typography>
