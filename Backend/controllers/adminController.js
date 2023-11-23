@@ -14,6 +14,7 @@ const { S3Client } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const CancellationRequest = require('../models/cancellationModel');
+const Coupon = require('../models/couponModel');
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -501,6 +502,50 @@ exports.getAllCancellationRequests = async (req, res) => {
     } catch (error) {
         console.error('Error fetching cancellation requests:', error);
         res.status(500).json({ message: 'Error fetching requests' });
+    }
+};
+
+
+exports.createCoupon = async (req, res) => {
+    try {
+        const { code, discountType, discountValue, expiryDate, usageLimit } = req.body;
+        const newCoupon = new Coupon({ code, discountType, discountValue, expiryDate, usageLimit });
+        await newCoupon.save();
+        res.status(201).json({ message: 'Coupon created successfully', coupon: newCoupon });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating coupon', error });
+    }
+};
+
+exports.updateCoupon = async (req, res) => {
+    try {
+        const { couponId } = req.params;
+        const updateData = req.body;
+        const updatedCoupon = await Coupon.findByIdAndUpdate(couponId, updateData, { new: true });
+        if (!updatedCoupon) return res.status(404).json({ message: 'Coupon not found' });
+        res.json({ message: 'Coupon updated successfully', coupon: updatedCoupon });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating coupon', error });
+    }
+};
+
+exports.deleteCoupon = async (req, res) => {
+    try {
+        const { couponId } = req.params;
+        const deletedCoupon = await Coupon.findByIdAndDelete(couponId);
+        if (!deletedCoupon) return res.status(404).json({ message: 'Coupon not found' });
+        res.json({ message: 'Coupon deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting coupon', error });
+    }
+};
+
+exports.getAllCoupons = async (req, res) => {
+    try {
+        const coupons = await Coupon.find({});
+        res.json({ coupons });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching coupons', error });
     }
 };
 

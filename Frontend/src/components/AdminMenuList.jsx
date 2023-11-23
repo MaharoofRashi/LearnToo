@@ -4,8 +4,8 @@ import {
     AreaChartOutlined,
     BarsOutlined, FileAddOutlined,
     HomeOutlined,
-    PayCircleOutlined,
-    SettingOutlined, UnorderedListOutlined,
+    PayCircleOutlined, PlusCircleOutlined,
+    SettingOutlined, UnorderedListOutlined, UsergroupAddOutlined,
     UserOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -34,8 +34,8 @@ const AdminMenuList = ({ darkTheme }) => {
             case 'cancellationRequests':
                 navigate('/admin/cancellation-requests');
                 break;
-            case 'progress':
-                navigate('/admin/progress');
+            case 'couponMangement':
+                navigate('/admin/coupon-management');
                 break;
             case 'payment':
                 navigate('/admin/payment');
@@ -65,8 +65,11 @@ const AdminMenuList = ({ darkTheme }) => {
             <Menu.Item key='userManagement' icon={<UserOutlined />}>
                 Users
             </Menu.Item>
-            <Menu.Item key='cancellationRequests' icon={<UserOutlined />}>
+            <Menu.Item key='cancellationRequests' icon={<UsergroupAddOutlined />}>
                 Requests
+            </Menu.Item>
+            <Menu.Item key='couponMangement' icon={<PlusCircleOutlined />}>
+                Coupons
             </Menu.Item>
             {/*<Menu.SubMenu key='tasks' icon={<BarsOutlined />} title="Tasks">*/}
             {/*    <Menu.Item key='task-1'>Task 1</Menu.Item>*/}
@@ -76,15 +79,15 @@ const AdminMenuList = ({ darkTheme }) => {
             {/*        <Menu.Item key='subtask-2'>SubTask 2</Menu.Item>*/}
             {/*    </Menu.SubMenu>*/}
             {/*</Menu.SubMenu>*/}
-            <Menu.Item key='progress' icon={<AreaChartOutlined />}>
-                Progress
-            </Menu.Item>
+            {/*<Menu.Item key='progress' icon={<AreaChartOutlined />}>*/}
+            {/*    Progress*/}
+            {/*</Menu.Item>*/}
             <Menu.Item key='payment' icon={<PayCircleOutlined />}>
                 Payment
             </Menu.Item>
-            <Menu.Item key='setting' icon={<SettingOutlined />}>
-                Setting
-            </Menu.Item>
+            {/*<Menu.Item key='setting' icon={<SettingOutlined />}>*/}
+            {/*    Setting*/}
+            {/*</Menu.Item>*/}
         </Menu>
     );
 };

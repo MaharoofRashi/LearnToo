@@ -32,6 +32,10 @@ router.delete('/lessons/:lessonId', authenticateJwt(['admin']), adminController.
 router.post('/update-cancellation-request', authenticateJwt(['admin']), adminController.updateCancellationRequest);
 router.get('/cancellation-requests', authenticateJwt(['admin']), adminController.getAllCancellationRequests);
 
+router.post('/coupon', authenticateJwt(['admin']), adminController.createCoupon);
+router.put('/coupon/:couponId', authenticateJwt(['admin']), adminController.updateCoupon);
+router.delete('/coupon/:couponId', authenticateJwt(['admin']), adminController.deleteCoupon);
+router.get('/coupons', authenticateJwt(['admin']), adminController.getAllCoupons);
 
 module.exports = router;
 

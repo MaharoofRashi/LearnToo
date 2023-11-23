@@ -17,6 +17,7 @@
     "antd": "^5.10.3",
     "axios": "^1.6.0",
     "jwt-decode": "^4.0.0",
+    "moment": "^2.29.4",
     "prop-types": "^15.8.1",
     "razorpay": "^2.9.2",
     "razorpay-checkout": "^1.0.4",
