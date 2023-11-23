@@ -123,6 +123,7 @@ const CheckoutPage = () => {
                 throw new Error("Authentication token not found");
             }
 
+            const originalAmount = calculateOriginalTotalAmount();
             const amount = calculateTotalAmount();
             const orderResponse = await axios.post('http://localhost:3000/user/create-order', { amount }, { headers: { Authorization: `Bearer ${token}` } });
             const { id: orderId } = orderResponse.data;
@@ -138,7 +139,9 @@ const CheckoutPage = () => {
                         const verificationResponse = await axios.post('http://localhost:3000/user/verify-payment', {
                             ...response,
                             orderCreationId: orderId,
-                            courseId: courses.map(course => course._id)
+                            courseId: courses.map(course => course._id),
+                            originalAmount: originalAmount,
+                            discountedAmount: discountedPrice !== null ? discountedPrice : originalAmount
                         }, { headers: { Authorization: `Bearer ${token}` } });
 
                         if (verificationResponse.data.verified) {
@@ -169,7 +172,7 @@ const CheckoutPage = () => {
     };
     const calculateTotalAmount = () => {
         if (discountedPrice !== null) {
-            return discountedPrice * 100; // Assuming discountedPrice is in the same unit as course.price
+            return discountedPrice * 100;
         }
         return courses.reduce((total, course) => total + course.price, 0) * 100;
     };

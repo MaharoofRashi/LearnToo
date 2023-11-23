@@ -10,6 +10,7 @@ const Razorpay = require('razorpay');
 const crypto = require("crypto");
 const CancellationRequest = require('../models/cancellationModel');
 const Coupon = require('../models/couponModel');
+const Order = require('../models/orderModel');
 
 
 const transporter = nodemailer.createTransport({
@@ -484,6 +485,20 @@ exports.verifyPayment = async (req, res) => {
     if (expectedSignature === razorpay_signature) {
         try {
             const userId = req.user.id;
+            const amount = req.body.originalAmount;
+            const discountedAmount = req.body.discountedAmount;
+
+            const newOrder = new Order({
+                userId,
+                courses: courseId,
+                totalAmount: amount,
+                discountedAmount: discountedAmount,
+                transactionId: razorpay_payment_id,
+                paymentStatus: 'Completed',
+                orderDate: new Date()
+            });
+            await newOrder.save();
+
             await User.findByIdAndUpdate(userId, { $addToSet: { purchasedCourses: courseId } });
             res.status(200).json({ verified: true, message: "Payment verified successfully" });
         } catch (error) {
