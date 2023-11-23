@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, List, Button, Modal, Form, Input, notification, Row, Col, Typography } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import {discountedPriceState} from "../store/atoms/discountedPriceState.js";
 const { Title, Text, Paragraph } = Typography;
+import { useRecoilState } from 'recoil';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -13,6 +15,7 @@ const CheckoutPage = () => {
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [discountedPrice] = useRecoilState(discountedPriceState);
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -161,8 +164,13 @@ const CheckoutPage = () => {
             setLoading(false);
         }
     };
-
+    const calculateOriginalTotalAmount = () => {
+        return courses.reduce((total, course) => total + course.price, 0) * 100;
+    };
     const calculateTotalAmount = () => {
+        if (discountedPrice !== null) {
+            return discountedPrice * 100; // Assuming discountedPrice is in the same unit as course.price
+        }
         return courses.reduce((total, course) => total + course.price, 0) * 100;
     };
 
@@ -219,17 +227,15 @@ const CheckoutPage = () => {
                 <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '10px' }}>
                     <Title level={4} style={{ marginBottom: '20px' }}>Billing Details</Title>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                        <Text>Total Price:</Text>
-                        <Text strong>{`₹${formatAmountForDisplay(calculateTotalAmount())}`}</Text>
+                        <Text>Original Total:</Text>
+                        <Text>{`₹${formatAmountForDisplay(calculateOriginalTotalAmount())}`}</Text>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-                        <Text>Discount:</Text>
-                        <Text style={{ color: '#52c41a' }}>₹0.00</Text>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-                        <Text strong>Final Amount:</Text>
-                        <Text strong style={{ fontSize: '18px' }}>{`₹${formatAmountForDisplay(calculateTotalAmount())}`}</Text>
-                    </div>
+                    {discountedPrice !== null && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                            <Text strong>Discounted Total:</Text>
+                            <Text strong style={{ fontSize: '18px', color: '#ff4d4f' }}>{`₹${formatAmountForDisplay(discountedPrice * 100)}`}</Text>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ marginTop: '30px' }}>

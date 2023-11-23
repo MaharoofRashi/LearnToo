@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { cartState } from '../store/atoms/cartState';
-import { List, Button, Card, Space, Typography, Image, Checkbox, Divider, Row, Col, message } from 'antd';
+import {List, Button, Card, Space, Typography, Image, Checkbox, Divider, Row, Col, message, Input} from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import {discountedPriceState} from "../store/atoms/discountedPriceState.js";
 
 const { Title, Text } = Typography;
 
@@ -12,6 +13,8 @@ const CartPage = () => {
     const [cart, setCart] = useRecoilState(cartState);
     const initialSelectedCourses = JSON.parse(localStorage.getItem('selectedCourses')) || [];
     const [selectedCourses, setSelectedCourses] = useState(initialSelectedCourses);
+    const [couponCode, setCouponCode] = useState('');
+    const [discountedPrice, setDiscountedPrice] = useRecoilState(discountedPriceState);
 
     useEffect(() => {
         const fetchCart = async () => {
@@ -96,6 +99,44 @@ const CartPage = () => {
 
     const isCourseSelected = (courseId) => selectedCourses.includes(courseId);
 
+    const applyCoupon = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch('http://localhost:3000/user/apply-coupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    couponCode,
+                    originalPrice: selectedCourses.reduce((acc, courseId) => {
+                        const course = cart.find(c => c._id === courseId);
+                        return acc + (course ? course.price : 0);
+                    }, 0)
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setDiscountedPrice(data.discountedPrice);
+                message.success('Coupon applied successfully');
+            } else {
+                message.error(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            message.error('Failed to apply coupon');
+        }
+    };
+
+    const calculateOriginalTotal = () => {
+        return selectedCourses.reduce((acc, courseId) => {
+            const course = cart.find(c => c._id === courseId);
+            return acc + (course ? course.price : 0);
+        }, 0);
+    };
+
     return (
         <div style={{ padding: '24px', backgroundColor: 'rgb(240, 242, 245)', minHeight: '100vh' }}>
             <Title level={2} style={{ marginBottom: '20px' }}>Your Cart</Title>
@@ -140,19 +181,33 @@ const CartPage = () => {
                     </List.Item>
                 )}
             />
+            <Space direction="vertical" style={{ width: '100%', marginTop: '20px' }}>
+                <Input
+                    placeholder="Enter coupon code"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    style={{ width: '200px', marginRight: '10px' }}
+                />
+                <Button onClick={applyCoupon}>Apply Coupon</Button>
+            </Space>
 
             <Divider />
 
             <Row justify="end" align="middle" style={{ marginTop: '20px' }}>
                 <Col>
-                    <Title level={4} style={{ marginRight: '20px', display: 'inline' }}> {/* Inline style for Title */}
-                        Total: ${selectedCourses.reduce((acc, courseId) => {
-                            const course = cart.find(c => c._id === courseId);
-                            return acc + (course ? course.price : 0);
-                        }, 0).toFixed(2)}
-                    </Title>
+                    <Text>Original Total:</Text>
+                    <Text style={{ marginLeft: '10px', textDecoration: discountedPrice !== null ? 'line-through' : 'none' }}>
+                        ${calculateOriginalTotal().toFixed(2)}
+                    </Text>
                 </Col>
-                <Col>
+                {discountedPrice !== null && (
+                    <Col>
+                        <Text strong style={{ marginLeft: '20px', color: '#ff4d4f' }}>
+                            Discounted Total: ${discountedPrice.toFixed(2)}
+                        </Text>
+                    </Col>
+                )}
+                <Col style={{ marginLeft: '20px' }}>
                     <Button
                         type="primary"
                         size="large"

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { cartState } from '../store/atoms/cartState';
 import { message } from 'antd';
+import {discountedPriceState} from "../store/atoms/discountedPriceState.js";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -19,6 +20,8 @@ const CourseDetailsPage = () => {
     const navigate = useNavigate();
     const [isCancellationModalVisible, setIsCancellationModalVisible] = useState(false);
     const [cancellationReason, setCancellationReason] = useState('');
+    const [couponCode, setCouponCode] = useState('');
+    const [discountedPrice, setDiscountedPrice] = useRecoilState(discountedPriceState);
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
@@ -27,7 +30,6 @@ const CourseDetailsPage = () => {
                 const response = await fetch(`http://localhost:3000/user/course/details/${courseId}`);
                 const data = await response.json();
                 setCourse(data.course);
-                // Now fetch lessons for this course
                 const lessonsResponse = await fetch(`http://localhost:3000/user/course/${courseId}/lessons`);
                 const lessonsData = await lessonsResponse.json();
                 setLessons(lessonsData);
@@ -62,12 +64,6 @@ const CourseDetailsPage = () => {
 
     const handleBuyNow = () => {
         navigate(`/checkout?courseId=${courseId}`);
-    };
-
-    // Function to handle course purchase
-    const handlePurchase = () => {
-        // Implement purchase logic
-        console.log("Purchasing course", course.title);
     };
 
     const handleAddToCart = async () => {
@@ -122,6 +118,31 @@ const CourseDetailsPage = () => {
             message.error('Failed to submit cancellation request.');
         }
         setIsCancellationModalVisible(false);
+    };
+
+    const applyCoupon = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            let originalPrice = course.price
+            const response = await fetch(`http://localhost:3000/user/apply-coupon`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ couponCode, originalPrice })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setDiscountedPrice(data.discountedPrice);
+                message.success('Coupon applied successfully', data.discountedPrice);
+            } else {
+                message.error(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            message.error('Failed to apply coupon');
+        }
     };
 
     // const checkCancellationStatus = async () => {
@@ -217,14 +238,34 @@ const CourseDetailsPage = () => {
                         marginLeft: '12px'
                     }}>
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                            <Text strong style={{ fontSize: '24px', color: '#fa8c16' }}>
-                                ${course.price.toFixed(2)}
+                            <Text strong style={{ fontSize: '24px', color: discountedPrice !== null ? '#ff4d4f' : '#1677FF' }}>
+                                {discountedPrice !== null ? (
+                                    <>
+                                        <span style={{ textDecoration: 'line-through', marginRight: '10px', color: '#bfbfbf' }}>
+                                            ₹{course.price.toFixed(2)}
+                                        </span>
+                                        <span style={{ color: '#ff4d4f' }}>
+                                            ₹{discountedPrice.toFixed(2)}
+                                        </span>
+                                    </>
+                                ) : (
+                                    `${course.price.toFixed(2)}`
+                                )}
                             </Text>
                             {!isPurchased && (
                                 <>
                                     <div style={{ marginBottom: '20px' }}>
-                                        <Input placeholder="Coupon code" style={{ marginBottom: '10px' }} />
-                                        <Button type="default" style={{ width: '100%' }}>
+                                        <Input
+                                            placeholder="Coupon code"
+                                            style={{ marginBottom: '10px' }}
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value)}
+                                        />
+                                        <Button
+                                            type="default"
+                                            style={{ width: '100%' }}
+                                            onClick={applyCoupon}
+                                        >
                                             Apply Coupon
                                         </Button>
                                     </div>
