@@ -9,6 +9,7 @@ const SECRET = 'SECr3t';
 const Razorpay = require('razorpay');
 const crypto = require("crypto");
 const CancellationRequest = require('../models/cancellationModel');
+const Coupon = require('../models/couponModel');
 
 
 const transporter = nodemailer.createTransport({
@@ -572,3 +573,40 @@ exports.createCancellationRequest = async (req, res) => {
 //         res.status(500).json({ message: 'Error checking cancellation status' });
 //     }
 // };
+
+
+exports.applyCoupon = async (req, res) => {
+    const { couponCode, originalPrice } = req.body;
+
+    try {
+        const coupon = await Coupon.findOne({ code: couponCode });
+
+        if (!coupon) {
+            return res.status(404).json({ message: 'Coupon not found' });
+        }
+
+        if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+            return res.status(400).json({ message: 'Coupon has expired' });
+        }
+
+        if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+            return res.status(400).json({ message: 'Coupon usage limit reached' });
+        }
+
+        let discountAmount;
+        if (coupon.discountType === 'percentage') {
+            discountAmount = (coupon.discountValue / 100) * originalPrice;
+        } else {
+            discountAmount = coupon.discountValue;
+        }
+
+        discountAmount = Math.min(discountAmount, originalPrice);
+        coupon.usedCount += 1;
+        await coupon.save();
+
+        res.json({ discountedPrice: originalPrice - discountAmount });
+    } catch (error) {
+        console.error('Coupon application error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

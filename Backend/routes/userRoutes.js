@@ -31,7 +31,7 @@ router.put('/profile/education/:educationId', authenticateJwt(['user']), userCon
 router.delete('/profile/education/:educationId', authenticateJwt(['user']), userController.deleteEducation);
 router.post('/create-cancellation-request', authenticateJwt(['user']), userController.createCancellationRequest);
 // router.get('/check-cancellation-status/', authenticateJwt, userController.checkCancellationStatus);
-
+router.post('/apply-coupon', authenticateJwt(['user']), userController.applyCoupon);
 
 router.post('/create-order', authenticateJwt(['user']), userController.createOrder);
 router.post('/verify-payment', authenticateJwt(['user']), userController.verifyPayment);
