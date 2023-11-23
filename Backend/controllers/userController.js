@@ -11,6 +11,9 @@ const crypto = require("crypto");
 const CancellationRequest = require('../models/cancellationModel');
 const Coupon = require('../models/couponModel');
 const Order = require('../models/orderModel');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+
 
 
 const transporter = nodemailer.createTransport({
@@ -487,6 +490,15 @@ exports.verifyPayment = async (req, res) => {
             const userId = req.user.id;
             const amount = req.body.originalAmount;
             const discountedAmount = req.body.discountedAmount;
+            const billingAddressId = req.body.billingAddress
+
+            const user = await User.findById(userId);
+            const billingAddress = user.addresses.find(address => address._id.toString() === billingAddressId);
+
+            if (!billingAddress) {
+                return res.status(404).json({ message: "Billing address not found" });
+            }
+
 
             const newOrder = new Order({
                 userId,
@@ -495,7 +507,8 @@ exports.verifyPayment = async (req, res) => {
                 discountedAmount: discountedAmount,
                 transactionId: razorpay_payment_id,
                 paymentStatus: 'Completed',
-                orderDate: new Date()
+                orderDate: new Date(),
+                billingAddress: billingAddress
             });
             await newOrder.save();
 
@@ -507,6 +520,73 @@ exports.verifyPayment = async (req, res) => {
         }
     } else {
         res.status(400).json({ message: "Invalid signature sent" });
+    }
+};
+
+
+exports.createPdf = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const orderDetails = await Order.findById(orderId).populate('courses');
+
+        if (!orderDetails) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const doc = new PDFDocument();
+        let buffers = [];
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', () => {
+            const pdfData = Buffer.concat(buffers);
+            res.writeHead(200, {
+                'Content-Length': Buffer.byteLength(pdfData),
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment;filename=invoice_${orderId}.pdf`,
+            }).end(pdfData);
+        });
+
+        doc.fontSize(25).text('Invoice', { align: 'center' });
+        doc.moveDown();
+
+        doc.fontSize(14).text(`Order ID: ${orderDetails._id}`, { continued: true });
+        doc.text(` | Transaction ID: ${orderDetails.transactionId}`, { align: 'right' });
+        doc.text(`Date: ${orderDetails.orderDate.toLocaleDateString()}`);
+        doc.text(`Payment Status: ${orderDetails.paymentStatus}`);
+        doc.moveDown();
+        doc.moveDown();
+        doc.moveDown();
+        doc.moveDown();
+
+        doc.text(`Billing Address:`, { underline: true });
+        doc.text(`${orderDetails.billingAddress.street}, ${orderDetails.billingAddress.city}`);
+        doc.text(`${orderDetails.billingAddress.state}, ${orderDetails.billingAddress.country}`);
+        doc.text(`Zip: ${orderDetails.billingAddress.zip}`);
+        doc.moveDown();
+        doc.moveDown();
+        doc.moveDown();
+        doc.moveDown();
+
+        doc.text('Courses:', { underline: true });
+        orderDetails.courses.forEach(course => {
+            doc.image(course.image, { fit: [100, 100] });
+            doc.fontSize(12).text(`${course.title}: $${course.price}`);
+            doc.moveDown();
+        });
+
+        doc.fontSize(16).text(`Total Amount: $${orderDetails.totalAmount}`, { bold: true });
+        doc.text(`Discounted Amount: $${orderDetails.discountedAmount}`, { bold: true });
+        doc.moveDown();
+        doc.moveDown();
+        doc.moveDown();
+        doc.moveDown();
+
+        doc.fontSize(10).fillColor('#1677FF').text('Thank you for choosing LearnToo!', { align: 'center' });
+        doc.text('Phone: 7356220852 | Email: info@learntoo.com | Web: www.learntoo.com', { align: 'center' });
+
+        doc.end();
+    } catch (error) {
+        console.error('Error creating PDF:', error);
+        res.status(500).json({ message: 'Error creating PDF invoice', error });
     }
 };
 

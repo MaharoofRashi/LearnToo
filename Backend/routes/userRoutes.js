@@ -36,4 +36,5 @@ router.post('/apply-coupon', authenticateJwt(['user']), userController.applyCoup
 router.post('/create-order', authenticateJwt(['user']), userController.createOrder);
 router.post('/verify-payment', authenticateJwt(['user']), userController.verifyPayment);
 router.post('/clear-cart', authenticateJwt(['user']), userController.clearPurchasedCoursesFromCart);
+router.get('/download-invoice/:orderId', authenticateJwt(['user']), userController.createPdf);
 module.exports = router;

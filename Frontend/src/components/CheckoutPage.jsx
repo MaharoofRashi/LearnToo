@@ -141,7 +141,8 @@ const CheckoutPage = () => {
                             orderCreationId: orderId,
                             courseId: courses.map(course => course._id),
                             originalAmount: originalAmount,
-                            discountedAmount: discountedPrice !== null ? discountedPrice : originalAmount
+                            discountedAmount: discountedPrice !== null ? discountedPrice : originalAmount,
+                            billingAddress: selectedAddress
                         }, { headers: { Authorization: `Bearer ${token}` } });
 
                         if (verificationResponse.data.verified) {

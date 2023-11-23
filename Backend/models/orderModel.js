@@ -7,7 +7,14 @@ const orderSchema = new mongoose.Schema({
     discountedAmount: Number,
     transactionId: String,
     paymentStatus: String,
-    orderDate: { type: Date, default: Date.now }
+    orderDate: { type: Date, default: Date.now },
+    billingAddress: {
+        street: String,
+        city: String,
+        state: String,
+        country: String,
+        zip: String
+    }
 });
 
 module.exports = mongoose.model('Order', orderSchema);
