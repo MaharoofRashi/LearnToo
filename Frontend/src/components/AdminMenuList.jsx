@@ -40,8 +40,8 @@ const AdminMenuList = ({ darkTheme }) => {
             case 'payment':
                 navigate('/admin/payment');
                 break;
-            case 'setting':
-                navigate('/admin/settings');
+            case 'userOrders':
+                navigate('/admin/user-orders');
                 break;
             default:
             // handle default case
@@ -70,6 +70,9 @@ const AdminMenuList = ({ darkTheme }) => {
             </Menu.Item>
             <Menu.Item key='couponMangement' icon={<PlusCircleOutlined />}>
                 Coupons
+            </Menu.Item>
+            <Menu.Item key='userOrders' icon={<PlusCircleOutlined />}>
+                Purchases
             </Menu.Item>
             {/*<Menu.SubMenu key='tasks' icon={<BarsOutlined />} title="Tasks">*/}
             {/*    <Menu.Item key='task-1'>Task 1</Menu.Item>*/}

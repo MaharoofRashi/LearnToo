@@ -15,6 +15,7 @@ const { Upload } = require('@aws-sdk/lib-storage');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const CancellationRequest = require('../models/cancellationModel');
 const Coupon = require('../models/couponModel');
+const Order =  require('../models/orderModel');
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -549,3 +550,12 @@ exports.getAllCoupons = async (req, res) => {
     }
 };
 
+exports.getOrders = async (req, res) => {
+    try {
+        const orders = await Order.find().populate('userId', 'name').populate('courses', 'title price');
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ message: 'Error fetching orders', error });
+    }
+}

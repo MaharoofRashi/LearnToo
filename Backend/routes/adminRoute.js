@@ -36,6 +36,6 @@ router.post('/coupon', authenticateJwt(['admin']), adminController.createCoupon)
 router.put('/coupon/:couponId', authenticateJwt(['admin']), adminController.updateCoupon);
 router.delete('/coupon/:couponId', authenticateJwt(['admin']), adminController.deleteCoupon);
 router.get('/coupons', authenticateJwt(['admin']), adminController.getAllCoupons);
-
+router.get('/orders', authenticateJwt(['admin']), adminController.getOrders);
 module.exports = router;
 
