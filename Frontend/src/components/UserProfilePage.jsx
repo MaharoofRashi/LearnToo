@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, List, Modal, notification } from 'antd';
+import {Form, Input, Button, Card, List, Modal, notification, Table, Space} from 'antd';
 import { EditOutlined, DeleteOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -10,8 +10,8 @@ const UserProfilePage = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [modalType, setModalType] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [orders, setOrders] = useState([]);
 
-    // Token retrieval
     const token = localStorage.getItem('token');
     const axiosInstance = axios.create({
         baseURL: 'http://localhost:3000',
@@ -28,11 +28,27 @@ const UserProfilePage = () => {
             form.setFieldsValue(response.data.userProfile);
             setAddresses(response.data.userProfile.addresses);
             setEducation(response.data.userProfile.education);
+            setOrders(response.data.userProfile.orders);
         } catch (error) {
             notification.error({ message: 'Error fetching user profile', description: error.message });
         }
     };
 
+    const downloadInvoice = async (orderId) => {
+        try {
+            const response = await axiosInstance.get(`/user/download-invoice/${orderId}`, { responseType: 'blob' });
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute('download', `invoice_${orderId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            notification.error({ message: 'Error downloading invoice', description: error.message });
+        }
+    };
     const onUpdateProfile = async (values) => {
         try {
             await axiosInstance.put('/user/profile', values);
@@ -127,6 +143,34 @@ const UserProfilePage = () => {
         }
     };
 
+    const ordersColumns = [
+        {
+            title: 'Order ID',
+            dataIndex: '_id',
+            key: 'id',
+        },
+        {
+            title: 'Date',
+            dataIndex: 'orderDate',
+            key: 'date',
+            render: (text) => new Date(text).toLocaleDateString(),
+        },
+        {
+            title: 'Total Amount',
+            dataIndex: 'totalAmount',
+            key: 'totalAmount',
+        },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                <Space size="middle">
+                    <a onClick={() => downloadInvoice(record._id)}>Download Invoice</a>
+                </Space>
+            ),
+        },
+    ];
+
     return (
         <div style={{ maxWidth: '800px', margin: 'auto', backgroundColor: '#f0f2f5', minHeight: '100vh', padding: '20px', boxSizing: 'border-box' }}>
             <Card title="User Profile" style={{ marginBottom: '20px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
@@ -158,7 +202,7 @@ const UserProfilePage = () => {
                 <Button type="dashed" onClick={() => openModal('address')} style={{ width: '100%', marginTop: '10px' }}>Add Address</Button>
             </Card>
 
-            <Card title="Education" style={{ borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+            <Card title="Education" style={{ marginBottom: '20px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
                 <List
                     dataSource={education}
                     renderItem={edu => (
@@ -173,6 +217,10 @@ const UserProfilePage = () => {
                     )}
                 />
                 <Button type="dashed" onClick={() => openModal('education')} style={{ width: '100%', marginTop: '10px' }}>Add Education</Button>
+            </Card>
+
+            <Card title="Your Orders" style={{ /* Your styles here */ }}>
+                <Table dataSource={orders} columns={ordersColumns} rowKey="_id" />
             </Card>
 
             <Modal

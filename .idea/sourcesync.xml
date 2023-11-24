@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SourceSyncRemoteConfigurationsService"><![CDATA[{
+  "connections": [
+    {
+      "type": "ssh_configuration",
+      "name": "LearnToo",
+      "hostname": "ec2-65-2-83-18.ap-south-1.compute.amazonaws.com",
+      "username": "ubuntu",
+      "authentication_type": "KEY_PAIR",
+      "private_key": "C:\\Users\\rashi\\Downloads\\LearnToo.pem"
+    }
+  ],
+  "mainConnection": "LearnToo"
+}]]></component>
+</project>

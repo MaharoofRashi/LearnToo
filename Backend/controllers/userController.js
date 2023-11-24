@@ -296,6 +296,7 @@ exports.getUserProfile = async (req, res) => {
         const user = await User.findById(userId)
             .select('-password -otp -isBlocked -cart')
             .populate('defaultAddress');
+        const orders = await Order.find({ userId }).populate('courses');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -304,6 +305,7 @@ exports.getUserProfile = async (req, res) => {
             ...address,
             isDefault: address._id.equals(user.defaultAddress)
         }));
+        userProfile.orders = orders;
 
         res.status(200).json({ userProfile });
     } catch (error) {
