@@ -37,5 +37,7 @@ router.post('/create-order', authenticateJwt(['user']), userController.createOrd
 router.post('/verify-payment', authenticateJwt(['user']), userController.verifyPayment);
 router.post('/clear-cart', authenticateJwt(['user']), userController.clearPurchasedCoursesFromCart);
 router.get('/download-invoice/:orderId', authenticateJwt(['user']), userController.createPdf);
-router.post('/create-review/:courseId', authenticateJwt(['user']), userController.createReview)
+router.post('/create-review/:courseId', authenticateJwt(['user']), userController.createReview);
+router.post('/report-course', authenticateJwt(['user']), userController.createReport);
+
 module.exports = router;

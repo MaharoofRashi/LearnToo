@@ -14,6 +14,7 @@ const Order = require('../models/orderModel');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const Review = require('../models/reviewModel');
+const Report = require('../models/reportCourseModel');
 
 
 
@@ -745,6 +746,44 @@ exports.createReview = async (req, res) => {
         await course.save();
 
         res.status(201).json({ message: 'Review added successfully', review: newReview });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+exports.createReport = async (req, res) => {
+    try {
+        const { courseId, reason } = req.body;
+        const userId = req.user.id;
+        const existingRequest = await Report.findOne({ user: userId, course: courseId });
+
+        if (existingRequest) {
+            let message = '';
+            switch(existingRequest.status) {
+                case 'pending':
+                    message = 'A report request for this course is already pending.';
+                    break;
+                case 'rejected':
+                    message = 'Your previous report request for this course was rejected.';
+                    break;
+                case 'accepted':
+                    message = 'Your report request for this course has already been accepted.';
+                    break;
+            }
+            return res.status(400).json({ message });
+        }
+
+        const newReport = new Report({
+            course: courseId,
+            user: userId,
+            reason,
+            status: 'pending'
+        });
+
+        await newReport.save();
+
+        res.status(201).json({ message: 'Report submitted successfully', report: newReport });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

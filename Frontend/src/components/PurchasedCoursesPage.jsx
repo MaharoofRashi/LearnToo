@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, List, Typography, notification, Image, Modal, Rate, Input, Button } from 'antd';
+import { Card, List, Typography, notification, Image, Modal, Rate, Input, Button, Dropdown, Menu } from 'antd';
+import { MoreOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
@@ -10,6 +11,8 @@ const PurchasedCoursesPage = () => {
     const [purchasedCourses, setPurchasedCourses] = useState([]);
     const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
     const [currentCourseForReview, setCurrentCourseForReview] = useState(null);
+    const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+    const [reportData, setReportData] = useState({ reason: '' });
 
 
     useEffect(() => {
@@ -47,6 +50,77 @@ const PurchasedCoursesPage = () => {
             }
         }
     };
+
+    const ReportModal = ({ courseId, isVisible, onClose }) => {
+        const [reportData, setReportData] = useState({ reason: '' });
+
+        const handleReportSubmit = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.post(`http://localhost:3000/user/report-course`, {
+                    courseId: courseId,
+                    reason: reportData.reason
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (response.data.message) {
+                    notification.info({ message: response.data.message });
+                } else {
+                    notification.success({ message: 'Report submitted successfully' });
+                }
+                onClose();
+            } catch (error) {
+                if (error.response && error.response.data.message) {
+                    notification.error({ message: error.response.data.message });
+                } else {
+                    notification.error({ message: 'Failed to submit report', description: error.message });
+                }
+            }
+        };
+
+
+        return (
+            <Modal
+                title="Report Course"
+                visible={isVisible}
+                onOk={handleReportSubmit}
+                onCancel={onClose}
+                footer={[
+                    <Button key="back" onClick={onClose}>Cancel</Button>,
+                    <Button key="submit" type="primary" onClick={handleReportSubmit}>Submit Report</Button>,
+                ]}
+            >
+                <Input.TextArea
+                    rows={4}
+                    placeholder="Write your report reason here"
+                    onChange={(e) => setReportData({ ...reportData, reason: e.target.value })}
+                    value={reportData.reason}
+                />
+            </Modal>
+        );
+    };
+
+
+
+    const CourseActionsMenu = ({ course }) => (
+        <Menu>
+            <Menu.Item key="1" onClick={(e) => {
+                e.domEvent.stopPropagation();
+                setCurrentCourseForReview(course);
+                setIsReviewModalVisible(true);
+            }}>
+                Write a Review
+            </Menu.Item>
+            <Menu.Item key="2" onClick={(e) => {
+                e.domEvent.stopPropagation();
+                setCurrentCourseForReview(course);
+                setIsReportModalVisible(true);
+            }}>
+                Report Course
+            </Menu.Item>
+        </Menu>
+    );
 
 
 
@@ -99,27 +173,33 @@ const PurchasedCoursesPage = () => {
                     <List.Item key={course._id}>
                         <Card
                             hoverable
-                            style={{ height: '340px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                            style={{ height: '380px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                             cover={<Image alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '220px', objectFit: 'cover' }} />}
                             onClick={() => navigate(`/course-content/${course._id}`)}
                         >
                             <Card.Meta title={course.title} description={course.description} style={{ flexGrow: 1, overflow: 'hidden' }} />
-                            <Button
-                                style={{ marginTop: 'auto' }}
-                                type="primary"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCurrentCourseForReview(course);
-                                    setIsReviewModalVisible(true);
-                                }}
-                            >
-                                Write a Review
-                            </Button>
+                            <Dropdown overlay={<CourseActionsMenu course={course} />} trigger={['click']} placement="bottomRight">
+                                <Button
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ position: 'absolute', right: 10 }}
+                                    icon={<MoreOutlined />}
+                                    size="large"
+                                    shape="circle"
+                                />
+                            </Dropdown>
                         </Card>
                     </List.Item>
                 )}
             />
             <ReviewModal />
+            <ReportModal
+                courseId={currentCourseForReview?._id}
+                isVisible={isReportModalVisible}
+                onClose={() => {
+                    setIsReportModalVisible(false);
+                    setReportData({ reason: '' });
+                }}
+            />
         </div>
     );
 };
