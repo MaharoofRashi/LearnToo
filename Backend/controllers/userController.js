@@ -756,7 +756,7 @@ exports.createReport = async (req, res) => {
     try {
         const { courseId, reason } = req.body;
         const userId = req.user.id;
-        const existingRequest = await Report.findOne({ user: userId, course: courseId });
+        const existingRequest = await Report.findOne({ userId: userId, courseId: courseId });
 
         if (existingRequest) {
             let message = '';
@@ -775,8 +775,8 @@ exports.createReport = async (req, res) => {
         }
 
         const newReport = new Report({
-            course: courseId,
-            user: userId,
+            courseId: courseId,
+            userId: userId,
             reason,
             status: 'pending'
         });

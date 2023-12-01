@@ -27,6 +27,7 @@ import CouponManagement from "./components/CouponManagement.jsx";
 import AdminOrdersPage from "./components/AdminOrdersPage.jsx";
 import AdminSalesReportPage from "./components/SalesManagementPage.jsx";
 import NotFoundPage from "./components/NotFoundPage.jsx";
+import AdminReportRequestsPage from "./components/AdminReportRequestsPage.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -79,6 +80,7 @@ function App() {
                         <Route path="coupon-management" element={<CouponManagement />} />
                         <Route path="user-orders" element={<AdminOrdersPage />} />
                         <Route path="sales" element={<AdminSalesReportPage />} />
+                        <Route path="report-requests" element={<AdminReportRequestsPage />} />
                     </Route>
                 </Routes>
             </Router>

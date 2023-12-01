@@ -14,7 +14,7 @@ const AdminCancellationRequestsPage = () => {
             const token = localStorage.getItem('token'); // Retrieve the token
             const response = await axios.get('http://localhost:3000/admin/cancellation-requests', {
                 headers: {
-                    Authorization: `Bearer ${token}` // Include the token in the Authorization header
+                    Authorization: `Bearer ${token}`
                 }
             });
             setRequests(response.data);
@@ -25,14 +25,14 @@ const AdminCancellationRequestsPage = () => {
 
     const updateRequestStatus = async (requestId, status) => {
         try {
-            const token = localStorage.getItem('token'); // Retrieve the token
+            const token = localStorage.getItem('token');
             await axios.post('http://localhost:3000/admin/update-cancellation-request', { requestId, status }, {
                 headers: {
-                    Authorization: `Bearer ${token}` // Include the token in the Authorization header
+                    Authorization: `Bearer ${token}`
                 }
             });
             message.success(`Request ${status}`);
-            fetchRequests(); // Refresh the list after update
+            fetchRequests();
         } catch (error) {
             message.error('Error updating request');
         }

@@ -43,6 +43,9 @@ const AdminMenuList = ({ darkTheme }) => {
             case 'userOrders':
                 navigate('/admin/user-orders');
                 break;
+            case 'reportRequests':
+                navigate('/admin/report-requests');
+                break;
             default:
             // handle default case
         }
@@ -87,6 +90,9 @@ const AdminMenuList = ({ darkTheme }) => {
             {/*</Menu.Item>*/}
             <Menu.Item key='sales' icon={<PayCircleOutlined />}>
                 Sales
+            </Menu.Item>
+            <Menu.Item key='reportRequests' icon={<PayCircleOutlined />}>
+                Complains
             </Menu.Item>
             {/*<Menu.Item key='setting' icon={<SettingOutlined />}>*/}
             {/*    Setting*/}

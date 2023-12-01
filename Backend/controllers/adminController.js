@@ -18,6 +18,7 @@ const Coupon = require('../models/couponModel');
 const Order =  require('../models/orderModel');
 const moment = require('moment');
 const PDFDocument = require('pdfkit');
+const Report = require('../models/reportCourseModel');
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -753,4 +754,35 @@ exports.downloadSalesReport = async (req, res) => {
         console.error('Error creating PDF:', error);
         res.status(500).json({ message: "Error creating sales report for download", error });
     }
+};
+
+exports.getAllReports = async (req, res) => {
+    try {
+        const reports = await Report.find({}).populate('userId', 'username').populate('courseId', 'title');
+        res.json(reports);
+    } catch (error) {
+        console.error('Error fetching reports:', error);
+        res.status(500).json({ message: 'Error fetching reports' });
+    }
+};
+
+exports.updateReportStatus = async (req, res) => {
+    const { reportId, status } = req.body;
+
+    const report = await Report.findById(reportId);
+    if (!report) {
+        return res.status(404).json({ message: 'Report not found.' });
+    }
+
+    report.status = status;
+    await report.save();
+
+    if (status === 'accepted') {
+        const course = await Course.findById(report.courseId);
+        if (course) {
+            course.published = false;
+            await course.save();
+        }
+    }
+    res.json({ message: `Report status updated to ${status}.` });
 };

@@ -44,5 +44,8 @@ router.get('/sales/monthly', authenticateJwt(['admin']), adminController.getMont
 router.get('/sales/yearly', authenticateJwt(['admin']), adminController.getYearlySalesReport);
 router.get('/sales/interval', authenticateJwt(['admin']), adminController.getSalesReportByInterval);
 router.get('/sales/download', authenticateJwt(['admin']), adminController.downloadSalesReport);
+
+router.post('/update-report-status', authenticateJwt(['admin']), adminController.updateReportStatus);
+router.get('/report-requests', authenticateJwt(['admin']), adminController.getAllReports);
 module.exports = router;
 
