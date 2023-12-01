@@ -13,6 +13,7 @@ const Coupon = require('../models/couponModel');
 const Order = require('../models/orderModel');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const Review = require('../models/reviewModel');
 
 
 
@@ -705,5 +706,46 @@ exports.applyCoupon = async (req, res) => {
     } catch (error) {
         console.error('Coupon application error:', error);
         res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+exports.createReview = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const { rating, comment } = req.body;
+        const userId = req.user.id;
+
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        const user = await User.findById(userId).populate('purchasedCourses');
+        if (!user.purchasedCourses.some(course => course._id.toString() === courseId)) {
+            return res.status(403).json({ message: 'User has not purchased this course' });
+        }
+
+        const alreadyReviewed = await Review.findOne({ user: userId, course: courseId });
+        if (alreadyReviewed) {
+            return res.status(400).json({ message: 'User has already reviewed this course' });
+        }
+
+        const newReview = new Review({
+            course: courseId,
+            user: userId,
+            rating,
+            comment
+        });
+        await newReview.save();
+
+        const reviews = await Review.find({ course: courseId });
+        course.averageRating = reviews.reduce((acc, item) => acc + item.rating, 0) / reviews.length;
+        course.reviewCount = reviews.length;
+        await course.save();
+
+        res.status(201).json({ message: 'Review added successfully', review: newReview });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
