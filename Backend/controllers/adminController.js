@@ -16,6 +16,8 @@ const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const CancellationRequest = require('../models/cancellationModel');
 const Coupon = require('../models/couponModel');
 const Order =  require('../models/orderModel');
+const moment = require('moment');
+const PDFDocument = require('pdfkit');
 
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -559,3 +561,196 @@ exports.getOrders = async (req, res) => {
         res.status(500).json({ message: 'Error fetching orders', error });
     }
 }
+
+exports.getDailySalesReport = async (req, res) => {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const sales = await Order.aggregate([
+            { $match: { orderDate: { $gte: today, $lt: tomorrow } } },
+            { $group: { _id: null, totalSales: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+        ]);
+
+        res.json({ sales: sales[0] ? sales[0] : { totalSales: 0, count: 0 } });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching daily sales report", error });
+    }
+};
+
+
+
+exports.getWeeklySalesReport = async (req, res) => {
+    try {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek);
+
+        const sales = await Order.aggregate([
+            { $match: { orderDate: { $gte: startOfWeek } } },
+            { $group: { _id: null, totalSales: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+        ]);
+
+        res.json({ sales: sales[0] });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching weekly sales report", error });
+    }
+};
+
+exports.getMonthlySalesReport = async (req, res) => {
+    try {
+        const today = new Date();
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        const sales = await Order.aggregate([
+            { $match: { orderDate: { $gte: startOfMonth } } },
+            { $group: { _id: null, totalSales: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+        ]);
+
+        res.json({ sales: sales[0] });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching monthly sales report", error });
+    }
+};
+
+
+exports.getYearlySalesReport = async (req, res) => {
+    try {
+        const today = new Date();
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+
+        const sales = await Order.aggregate([
+            { $match: { orderDate: { $gte: startOfYear } } },
+            { $group: { _id: null, totalSales: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+        ]);
+
+        res.json({ sales: sales[0] });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching yearly sales report", error });
+    }
+};
+
+
+exports.getSalesReportByInterval = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const start = new Date(startDate);
+        let end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+
+        const sales = await Order.aggregate([
+            { $match: { orderDate: { $gte: start, $lt: end } } }, // Use $lt for 'end'
+            { $group: { _id: null, totalSales: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+        ]);
+
+        res.json({ sales: sales[0] ? sales[0] : { totalSales: 0, count: 0 } });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching sales report for the selected interval", error });
+    }
+};
+
+
+function getDailyDateRange() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return { startDate: today, endDate: tomorrow };
+}
+
+function getWeeklyDateRange() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    return { startDate: startOfWeek, endDate: endOfWeek };
+}
+
+function getMonthlyDateRange() {
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return { startDate: startOfMonth, endDate: endOfMonth };
+}
+
+function getYearlyDateRange() {
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+    const endOfYear = new Date(today.getFullYear() + 1, 0, 0);
+    return { startDate: startOfYear, endDate: endOfYear };
+}
+
+
+exports.downloadSalesReport = async (req, res) => {
+    try {
+        const { reportType, startDate, endDate } = req.query;
+        let dateRange;
+
+        if (reportType === 'interval') {
+            dateRange = {
+                startDate: new Date(startDate),
+                endDate: new Date(endDate)
+            };
+            dateRange.endDate.setDate(dateRange.endDate.getDate() + 1);
+        } else {
+            switch (reportType) {
+                case 'daily':
+                    dateRange = getDailyDateRange();
+                    break;
+                case 'weekly':
+                    dateRange = getWeeklyDateRange();
+                    break;
+                case 'monthly':
+                    dateRange = getMonthlyDateRange();
+                    break;
+                case 'yearly':
+                    dateRange = getYearlyDateRange();
+                    break;
+                default:
+                    return res.status(400).json({ message: "Invalid report type" });
+            }
+        }
+
+        const salesData = await Order.find({
+            orderDate: {
+                $gte: dateRange.startDate,
+                $lte: dateRange.endDate
+            }
+        }).populate('courses');
+
+        const doc = new PDFDocument();
+        let buffers = [];
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', () => {
+            const pdfData = Buffer.concat(buffers);
+            res.writeHead(200, {
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment; filename="sales-report-${moment(startDate).format('YYYYMMDD')}-${moment(endDate).format('YYYYMMDD')}.pdf"`
+            });
+            res.end(pdfData);
+        });
+
+        doc.fontSize(16).text('Sales Report', { underline: true });
+        doc.moveDown();
+
+        salesData.forEach(order => {
+            doc.fontSize(12).text(`Order ID: ${order._id}`);
+            doc.text(`Date: ${moment(order.orderDate).format('YYYY-MM-DD')}`);
+            doc.text(`Total Amount: ${order.totalAmount}`);
+            order.courses.forEach(course => {
+                doc.text(`Course: ${course.title}`);
+            });
+            doc.moveDown();
+        });
+
+        doc.end();
+    } catch (error) {
+        console.error('Error creating PDF:', error);
+        res.status(500).json({ message: "Error creating sales report for download", error });
+    }
+};

@@ -37,5 +37,12 @@ router.put('/coupon/:couponId', authenticateJwt(['admin']), adminController.upda
 router.delete('/coupon/:couponId', authenticateJwt(['admin']), adminController.deleteCoupon);
 router.get('/coupons', authenticateJwt(['admin']), adminController.getAllCoupons);
 router.get('/orders', authenticateJwt(['admin']), adminController.getOrders);
+
+router.get('/sales/daily', authenticateJwt(['admin']), adminController.getDailySalesReport);
+router.get('/sales/weekly', authenticateJwt(['admin']), adminController.getWeeklySalesReport);
+router.get('/sales/monthly', authenticateJwt(['admin']), adminController.getMonthlySalesReport);
+router.get('/sales/yearly', authenticateJwt(['admin']), adminController.getYearlySalesReport);
+router.get('/sales/interval', authenticateJwt(['admin']), adminController.getSalesReportByInterval);
+router.get('/sales/download', authenticateJwt(['admin']), adminController.downloadSalesReport);
 module.exports = router;
 

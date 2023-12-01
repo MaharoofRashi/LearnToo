@@ -37,8 +37,8 @@ const AdminMenuList = ({ darkTheme }) => {
             case 'couponMangement':
                 navigate('/admin/coupon-management');
                 break;
-            case 'payment':
-                navigate('/admin/payment');
+            case 'sales':
+                navigate('/admin/sales');
                 break;
             case 'userOrders':
                 navigate('/admin/user-orders');
@@ -85,8 +85,8 @@ const AdminMenuList = ({ darkTheme }) => {
             {/*<Menu.Item key='progress' icon={<AreaChartOutlined />}>*/}
             {/*    Progress*/}
             {/*</Menu.Item>*/}
-            <Menu.Item key='payment' icon={<PayCircleOutlined />}>
-                Payment
+            <Menu.Item key='sales' icon={<PayCircleOutlined />}>
+                Sales
             </Menu.Item>
             {/*<Menu.Item key='setting' icon={<SettingOutlined />}>*/}
             {/*    Setting*/}
