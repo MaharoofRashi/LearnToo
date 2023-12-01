@@ -26,6 +26,7 @@ import AdminCancellationRequestsPage from "./components/AdminCancellationRequest
 import CouponManagement from "./components/CouponManagement.jsx";
 import AdminOrdersPage from "./components/AdminOrdersPage.jsx";
 import AdminSalesReportPage from "./components/SalesManagementPage.jsx";
+import NotFoundPage from "./components/NotFoundPage.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -56,6 +57,7 @@ function App() {
                     <Route path="course/:courseId" element={<CourseDetailsPage />} />
                     <Route path="/purchased-courses" element={<UserLayout><PurchasedCoursesPage /></UserLayout>} />
                     <Route path="/course-content/:courseId" element={<UserLayout><CourseContentPage /></UserLayout>} />
+                    <Route path="*" element={<UserLayout><NotFoundPage /></UserLayout>} />
 
                     <Route path="/admin/signin" element={<Signin />} />
                     <Route
