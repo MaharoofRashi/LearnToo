@@ -66,7 +66,7 @@ const Appbar = () => {
     );
 
     return (
-        <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 50px', background: 'white', height: '64px' }}>
+        <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 50px', background: 'rgb(255,255,255)', height: '64px', borderBottom: '2px solid #e0e0e0',boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}>
             <Link to="/" style={{ fontSize: '1.5em', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
                 LearnToo
             </Link>
