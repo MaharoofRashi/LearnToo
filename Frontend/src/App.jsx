@@ -28,6 +28,7 @@ import AdminOrdersPage from "./components/AdminOrdersPage.jsx";
 import AdminSalesReportPage from "./components/SalesManagementPage.jsx";
 import NotFoundPage from "./components/NotFoundPage.jsx";
 import AdminReportRequestsPage from "./components/AdminReportRequestsPage.jsx";
+import Chatting from "./components/Chatting.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const isAuthenticated = localStorage.getItem('token');
@@ -58,6 +59,7 @@ function App() {
                     <Route path="course/:courseId" element={<CourseDetailsPage />} />
                     <Route path="/purchased-courses" element={<UserLayout><PurchasedCoursesPage /></UserLayout>} />
                     <Route path="/course-content/:courseId" element={<UserLayout><CourseContentPage /></UserLayout>} />
+                    <Route path="/chat" element={<UserLayout><Chatting/></UserLayout>} />
                     <Route path="*" element={<UserLayout><NotFoundPage /></UserLayout>} />
 
                     <Route path="/admin/signin" element={<Signin />} />
@@ -81,6 +83,7 @@ function App() {
                         <Route path="user-orders" element={<AdminOrdersPage />} />
                         <Route path="sales" element={<AdminSalesReportPage />} />
                         <Route path="report-requests" element={<AdminReportRequestsPage />} />
+                        <Route path="chat" element={<Chatting />} />
                     </Route>
                 </Routes>
             </Router>

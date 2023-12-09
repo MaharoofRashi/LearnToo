@@ -14,6 +14,19 @@ const courseSchema = new mongoose.Schema({
         ref: 'Category',
         required: [true, 'Path `category` is required.'],
     },
+    chatHistory: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ChatMessage'
+    }],
+    participants: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    chatActive: {
+        type: Boolean,
+        default: true
+    },
+    lastActive: Date
 })
 
 module.exports = mongoose.model('Course', courseSchema);

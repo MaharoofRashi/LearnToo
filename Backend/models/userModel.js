@@ -20,7 +20,11 @@ const userSchema = new mongoose.Schema({
         degree: String,
         institution: String,
         year: Number
-    }]
+    }],
+    isOnline: {
+        type: Boolean,
+        default: false
+    }
 })
 
 module.exports = mongoose.model('User', userSchema);

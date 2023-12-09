@@ -134,6 +134,7 @@ exports.getPurchasedCourses = async (req, res) => {
 
 exports.me = async (req, res) => {
     res.json({
+        id: req.user.id,
         username: req.user.username
     })
 }

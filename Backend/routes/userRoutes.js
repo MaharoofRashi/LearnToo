@@ -40,4 +40,7 @@ router.get('/download-invoice/:orderId', authenticateJwt(['user']), userControll
 router.post('/create-review/:courseId', authenticateJwt(['user']), userController.createReview);
 router.post('/report-course', authenticateJwt(['user']), userController.createReport);
 
+router.get('/me', authenticateJwt(['user']), userController.me);
+
+
 module.exports = router;
