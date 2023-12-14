@@ -6,7 +6,11 @@ const lessonSchema = new mongoose.Schema({
         required: true,
     },
     description: String,
-    videoUrl: {
+    fileUrl: {
+        type: String,
+        required: true
+    },
+    fileType: {
         type: String,
         required: true
     },
@@ -16,5 +20,6 @@ const lessonSchema = new mongoose.Schema({
         required: true
     }
 }, { timestamps: true });
+
 
 module.exports = mongoose.model('Lesson', lessonSchema);

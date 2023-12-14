@@ -352,6 +352,7 @@ function getMimeType(filename) {
     const mimeTypes = {
         'mp4': 'video/mp4',
         'mov': 'video/quicktime',
+        'pdf': 'application/pdf'
     };
 
     return mimeTypes[extension] || 'application/octet-stream';
@@ -361,20 +362,28 @@ function getMimeType(filename) {
 const uploadLesson = multer({ storage: multer.memoryStorage() });
 
 exports.addLesson = async (req, res) => {
-    uploadLesson.single('video')(req, res, async (err) => {
+    uploadLesson.single('file')(req, res, async (err) => {
         if (err) {
             return res.status(500).json({ message: err.message });
         }
 
         try {
-            const fileExtension = req.file.originalname.split('.').pop();
-            const fileName = `${req.body.title.replace(/\s+/g, '-')}-${Date.now()}.${fileExtension}`;
-            const videoUrl = await uploadToS3(req.file, fileName);
+            const selectedType = req.body.fileType;
+            const fileType = req.file.mimetype.split('/')[1];
+
+            if ((selectedType === 'video' && fileType !== 'mp4') ||
+                (selectedType === 'pdf' && fileType !== 'pdf')) {
+                return res.status(400).json({ message: 'File type does not match the selected type' });
+            }
+
+            const fileName = `${req.body.title.replace(/\s+/g, '-')}-${Date.now()}.${fileType}`;
+            const fileUrl = await uploadToS3(req.file, fileName);
 
             const lesson = new Lesson({
                 title: req.body.title,
                 description: req.body.description,
-                videoUrl,
+                fileUrl,
+                fileType,
                 course: req.params.courseId
             });
 
@@ -399,7 +408,6 @@ exports.getLessons = async (req, res) => {
 exports.editLesson = async (req, res) => {
     const lessonId = req.params.lessonId;
     const { title, description } = req.body;
-    console.log(title, description)
 
     try {
         const lesson = await Lesson.findById(lessonId);
@@ -407,21 +415,25 @@ exports.editLesson = async (req, res) => {
             return res.status(404).json({ message: 'Lesson not found' });
         }
 
-        // Update lesson details if provided
         if (title) lesson.title = title;
         if (description) lesson.description = description;
 
-        // Handle the file upload first
-        uploadLesson.single('video')(req, res, async (err) => {
+        uploadLesson.single('file')(req, res, async (err) => {
             if (err) {
                 return res.status(500).json({ message: err.message });
             }
 
             if (req.file) {
+                const selectedType = req.body.fileType;
+                const fileType = req.file.mimetype.split('/')[1];
 
-                // Delete the old video from S3 first if it exists
-                if (lesson.videoUrl) {
-                    const oldFileName = lesson.videoUrl.split('/').pop();
+                if ((selectedType === 'video' && fileType !== 'mp4') ||
+                    (selectedType === 'pdf' && fileType !== 'pdf')) {
+                    return res.status(400).json({ message: 'File type does not match the selected type' });
+                }
+
+                if (lesson.fileUrl) {
+                    const oldFileName = lesson.fileUrl.split('/').pop();
                     const deleteParams = {
                         Bucket: process.env.AWS_BUCKET_NAME,
                         Key: `uploads/${oldFileName}`,
@@ -429,19 +441,16 @@ exports.editLesson = async (req, res) => {
                     await s3Client.send(new DeleteObjectCommand(deleteParams));
                 }
 
-                // Upload the new video
-                const fileExtension = req.file.originalname.split('.').pop();
-                const safeTitle = lesson.title.replace(/\s+/g, '-');
-                const fileName = `${safeTitle}-${Date.now()}.${fileExtension}`;
-                const videoUrl = await uploadToS3(req.file, fileName);
+                const safeTitle = title ? title.replace(/\s+/g, '-') : lesson.title.replace(/\s+/g, '-');
+                const fileName = `${safeTitle}-${Date.now()}.${fileType}`;
+                const fileUrl = await uploadToS3(req.file, fileName);
 
-                // Update the lesson with the new video URL
-                lesson.videoUrl = videoUrl;
+                lesson.fileUrl = fileUrl;
+                lesson.fileType = fileType;
             } else {
-                console.log('No video file to update.');
+                console.log('No file to update.');
             }
 
-            // Save the updated lesson
             await lesson.save();
             res.json({ message: 'Lesson updated successfully', lesson });
         });

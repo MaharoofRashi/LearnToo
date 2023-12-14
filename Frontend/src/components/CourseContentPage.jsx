@@ -38,11 +38,14 @@ const CourseContentPage = () => {
         {
             title: 'Action',
             key: 'action',
-            render: (text, record) => (
-                <Button type="primary" onClick={() => window.open(record.videoUrl, '_blank')}>
-                    Watch Video
-                </Button>
-            ),
+            render: (_, record) => {
+                if (record.fileType === 'mp4') {
+                    return <Button type="primary" onClick={() => window.open(record.fileUrl, '_blank')}>Watch Video</Button>;
+                } else if (record.fileType === 'pdf') {
+                    return <Button type="primary" onClick={() => window.open(record.fileUrl, '_blank')}>View PDF</Button>;
+                }
+                return null;
+            },
         },
     ];
 

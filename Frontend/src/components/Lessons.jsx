@@ -24,6 +24,7 @@ const AdminManageLessons = () => {
     const [currentLesson, setCurrentLesson] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [selectedFileType, setSelectedFileType] = useState('');
 
     // Fetch courses on component mount
     useEffect(() => {
@@ -66,31 +67,30 @@ const AdminManageLessons = () => {
     const showModal = (lesson = null) => {
         setCurrentLesson(lesson);
         setIsModalVisible(true);
-        // Reset the form with the lesson values if we are editing
+        form.resetFields();
+        setFileList([]);
+        setSelectedFileType('');
         if (lesson) {
             form.setFieldsValue({
                 title: lesson.title,
                 description: lesson.description,
-                video: lesson.videoUrl ? [{
+                fileType: lesson.fileType || '',
+                file: lesson.videoUrl ? [{
                     uid: '-1',
                     name: 'Video file',
                     status: 'done',
                     url: lesson.videoUrl,
                 }] : [],
             });
+            setSelectedFileType(lesson.fileType || '');
             setFileList(lesson.videoUrl ? [{
                 uid: '-1',
                 name: 'Video file',
                 status: 'done',
                 url: lesson.videoUrl,
             }] : []);
-        } else {
-            // If adding a new lesson, reset the form fields and file list
-            form.resetFields();
-            setFileList([]);
         }
     };
-
 
     const handleModalOk = async () => {
         try {
@@ -98,6 +98,7 @@ const AdminManageLessons = () => {
             const jsonData = {
                 title: values.title,
                 description: values.description,
+                videoUrl: selectedFileType === 'video' ? values.fileUrl : undefined,
             };
 
             const config = {
@@ -107,18 +108,16 @@ const AdminManageLessons = () => {
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     setUploadProgress(percentCompleted);
-                    console.log(`Upload progress: ${percentCompleted}%`);
                 },
             };
 
             let response;
             if (fileList.length > 0 && fileList[0].originFileObj) {
-                // If there's a file to upload, send as FormData
                 const formData = new FormData();
                 for (const key in jsonData) {
                     formData.append(key, jsonData[key]);
                 }
-                formData.append('video', fileList[0].originFileObj);
+                formData.append('file', fileList[0].originFileObj);
                 config.headers['Content-Type'] = 'multipart/form-data';
                 if (currentLesson) {
                     response = await axios.put(`http://localhost:3000/admin/lessons/${currentLesson._id}`, formData, config);
@@ -126,7 +125,6 @@ const AdminManageLessons = () => {
                     response = await axios.post(`http://localhost:3000/admin/courses/${selectedCourse}/lessons`, formData, config);
                 }
             } else {
-                // If no file, send JSON data
                 if (currentLesson) {
                     response = await axios.put(`http://localhost:3000/admin/lessons/${currentLesson._id}`, jsonData, config);
                 } else {
@@ -134,30 +132,14 @@ const AdminManageLessons = () => {
                 }
             }
 
-            // Rest of your code for handling the response and updating state
             message.success('Lesson updated successfully');
             setIsModalVisible(false);
             setUploadProgress(0);
-            // Refresh the list of lessons
             await fetchLessonsAndUpdateState();
         } catch (error) {
             console.error('Error submitting the form:', error);
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.error(error.response.data);
-                console.error(error.response.status);
-                console.error(error.response.headers);
-                message.error(error.response.data.message || 'Error submitting the form');
-            } else if (error.request) {
-                // The request was made but no response was received
-                console.error(error.request);
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                console.error('Error', error.message);
-            }
+            message.error(error.response?.data?.message || 'Error submitting the form');
         }
-
     };
 
     const fetchLessonsAndUpdateState = async () => {
@@ -169,7 +151,6 @@ const AdminManageLessons = () => {
         }
     };
 
-
     const handleModalCancel = () => {
         setIsModalVisible(false);
         setUploadProgress(0);
@@ -178,11 +159,30 @@ const AdminManageLessons = () => {
     const handleDeleteLesson = async lessonId => {
         try {
             await axios.delete(`http://localhost:3000/admin/lessons/${lessonId}`, getAuthHeaders());
-            setLessons(lessons.filter(lesson => lesson._id !== lessonId));
             message.success('Lesson deleted successfully');
+            await fetchLessonsAndUpdateState();
         } catch (error) {
             message.error('Error deleting lesson');
         }
+    };
+
+    const handleFileTypeChange = value => {
+        setSelectedFileType(value);
+    };
+
+    const beforeUpload = (file) => {
+        if (!selectedFileType) {
+            message.error('Please select a file type first');
+            return Upload.LIST_IGNORE;
+        }
+
+        const fileType = file.type.split('/')[1];
+        const expectedType = selectedFileType === 'video' ? 'mp4' : selectedFileType;
+        if (fileType !== expectedType) {
+            message.error(`You can only upload ${selectedFileType.toUpperCase()} file!`);
+            return Upload.LIST_IGNORE;
+        }
+        return true;
     };
 
     const lessonColumns = [
@@ -197,10 +197,17 @@ const AdminManageLessons = () => {
             key: 'description',
         },
         {
-            title: 'Video',
-            dataIndex: 'videoUrl',
-            key: 'videoUrl',
-            render: text => <a href={text} target="_blank" rel="noopener noreferrer">View Video</a>,
+            title: 'File',
+            key: 'file',
+            render: (_, record) => {
+                console.log(record);
+                if (record.fileType === 'mp4') {
+                    return <a href={record.fileUrl} target="_blank" rel="noopener noreferrer">View Video</a>;
+                } else if (record.fileType === 'pdf') {
+                    return <a href={record.fileUrl} target="_blank" rel="noopener noreferrer">View PDF</a>;
+                }
+                return null;
+            }
         },
         {
             title: 'Actions',
@@ -245,22 +252,29 @@ const AdminManageLessons = () => {
                     <Form.Item name="description" label="Description">
                         <TextArea rows={4} />
                     </Form.Item>
-                    <Form.Item name="video" label="Video File" valuePropName="fileList" getValueFromEvent={normFile}>
+                    <Form.Item name="fileType" label="File Type" rules={[{ required: true, message: 'Please select a file type!' }]}>
+                        <Select placeholder="Select file type" onChange={handleFileTypeChange}>
+                            <Option value="video">Video</Option>
+                            <Option value="pdf">PDF</Option>
+                            {/* Add other file types if necessary */}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="file" label="Upload File" valuePropName="fileList" getValueFromEvent={normFile}>
                         <Upload
-                            beforeUpload={() => false}
+                            beforeUpload={beforeUpload}
                             listType="text"
                             maxCount={1}
-                            onRemove={() => {
-                                setFileList([]);
-                                setUploadProgress(0); // Reset progress when file is removed
-                            }}
+                            onRemove={() => setFileList([])}
                             onChange={({ fileList }) => setFileList(fileList)}
+                            disabled={!selectedFileType} // Disable until file type is selected
                         >
-                            <Button icon={<UploadOutlined />}>Select File</Button>
+                            <Button icon={<UploadOutlined />} disabled={!selectedFileType}>
+                                Select File
+                            </Button>
                         </Upload>
                     </Form.Item>
                     {uploadProgress > 0 && (
-                        <Progress percent={uploadProgress} status={uploadProgress === 100 ? 'success' : 'active'} />
+                        <Progress percent={uploadProgress} />
                     )}
                 </Form>
             </Modal>
