@@ -17,8 +17,7 @@ module.exports = function (io) {
         const isAdmin = socket.handshake.query.isAdmin === 'true';
         console.log(`User ID: ${userId}, isAdmin: ${isAdmin}`);
 
-        await User.findByIdAndUpdate(userId, { isOnline: true });
-
+        await User.findByIdAndUpdate({_id:userId}, { isOnline: true });
         try {
             let rooms = [];
             console.log('rooms', rooms)

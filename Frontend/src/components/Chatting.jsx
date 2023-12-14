@@ -17,6 +17,8 @@ const Chatting = () => {
     const [activeCourse, setActiveCourse] = useState(null);
     const [courses, setCourses] = useState([]);
     const socketRef = useRef();
+    const [unreadCounts, setUnreadCounts] = useState({});
+    const messageListRef = useRef(null);
 
     const token = localStorage.getItem('token');
     let userRole;
@@ -24,9 +26,27 @@ const Chatting = () => {
         const decodedToken = jwtDecode(token);
         userRole = decodedToken.role;
     }
-    const fetchMoreMessages = () => {
-        if (activeCourse && socketRef.current && hasMoreMessages) {
-            socketRef.current.emit('getChatHistory', activeCourse, messageOffset, messageLimit);
+    const fetchMoreMessages = async () => {
+        if (activeCourse && hasMoreMessages) {
+            try {
+                const baseUrl = userRole === 'admin'
+                    ? `http://localhost:3000/admin/chat-history/${activeCourse}`
+                    : `http://localhost:3000/user/chat-history/${activeCourse}`;
+
+                const response = await axios.get(baseUrl, {
+                    params: { offset: messageOffset, limit: messageLimit },
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const fetchedMessages = response.data;
+                if (fetchedMessages.length < messageLimit) {
+                    setHasMoreMessages(false);
+                }
+                setMessages(prevMessages => [...fetchedMessages, ...prevMessages]);
+                setMessageOffset(prevOffset => prevOffset + fetchedMessages.length);
+            } catch (error) {
+                console.error("Error fetching chat history:", error);
+            }
         }
     };
 
@@ -41,7 +61,7 @@ const Chatting = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log(userResponse.data.id)
-                setCurrentUser(userResponse.data.id);
+                setCurrentUser(userResponse.data);
 
                 const coursesEndpoint = userRole === 'admin' ? 'http://localhost:3000/admin/courses' : 'http://localhost:3000/user/purchasedCourses';
 
@@ -72,7 +92,7 @@ const Chatting = () => {
         const isAdmin = userRole === 'admin';
 
         socketRef.current = io('http://localhost:3000', {
-            query: { userId: currentUser, isAdmin: isAdmin },
+            query: { userId: currentUser.id, isAdmin: isAdmin },
             extraHeaders: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
 
@@ -84,6 +104,8 @@ const Chatting = () => {
             }
             setMessages(prevMessages => [...prevMessages, ...history]);
             setMessageOffset(prevOffset => prevOffset + history.length);
+            const unreadCount = history.filter(msg => !msg.readBy.includes(currentUser.id)).length;
+            setUnreadCounts(prevCounts => ({ ...prevCounts, [activeCourse]: unreadCount }));
         });
 
 
@@ -96,6 +118,12 @@ const Chatting = () => {
             console.log('New message received:', message);
             if (message.course === activeCourse) {
                 setMessages(prev => [...prev, message]);
+            } else if (message.sender !== currentUser.id) {
+                setUnreadCounts(prevCounts => {
+                    const newCounts = { ...prevCounts };
+                    newCounts[message.course] = (newCounts[message.course] || 0) + 1;
+                    return newCounts;
+                });
             }
         });
 
@@ -103,6 +131,13 @@ const Chatting = () => {
             setMessages(prevMessages => prevMessages.map(msg =>
                 msg._id === messageId ? { ...msg, readBy: [...msg.readBy, currentUser.id] } : msg
             ));
+            setUnreadCounts(prevCounts => {
+                const newCounts = { ...prevCounts };
+                if (userId === currentUser.id && newCounts[activeCourse]) {
+                    newCounts[activeCourse]--;
+                }
+                return newCounts;
+            });
         });
 
         return () => socketRef.current.disconnect();
@@ -126,10 +161,13 @@ const Chatting = () => {
             fetchMoreMessages();
         }
     }, [activeCourse]);
+    const markMessageAsRead = (messageId) => {
+        socketRef.current.emit('markMessageAsRead', { messageId, userId: currentUser.id });
+    };
 
     const sendMessage = () => {
         if (input.trim() && activeCourse && currentUser) {
-            const newMessage = { sender: currentUser, message: input, courseId: activeCourse};
+            const newMessage = { sender: currentUser.id, message: input, courseId: activeCourse};
             console.log('Sending message:', newMessage);
             socketRef.current.emit('sendMessage', newMessage);
             setInput('');
@@ -141,6 +179,13 @@ const Chatting = () => {
         setMessages([]);
         setMessageOffset(0);
         setHasMoreMessages(true);
+        setUnreadCounts(prevCounts => ({ ...prevCounts, [courseId]: 0 }));
+
+        messages.forEach(message => {
+            if (!message.readBy.includes(currentUser.id)) {
+                markMessageAsRead(message._id);
+            }
+        });
     };
 
     useEffect(() => {
@@ -176,6 +221,21 @@ const Chatting = () => {
                         <Menu.Item key={course._id} style={{ display: 'flex', alignItems: 'center', padding: '10px 20px' }}>
                             <MessageOutlined style={{ fontSize: '16px', marginRight: '8px' }} />
                             {course.title}
+                            {unreadCounts[course._id] > 0 && (
+                                <>
+                                  <span style={{
+                                      height: '10px',
+                                      width: '10px',
+                                      backgroundColor: '#1677FF',
+                                      borderRadius: '50%',
+                                      display: 'inline-block',
+                                      marginRight: '5px',
+                                  }}></span>
+                                    <span style={{ color: '#1677FF', fontWeight: 'bold' }}>
+                                        {unreadCounts[course._id]}
+                                    </span>
+                                </>
+                            )}
                         </Menu.Item>
                     ))}
                 </Menu>
@@ -184,34 +244,34 @@ const Chatting = () => {
                 <div
                     style={{ height: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: '20px', marginBottom: '30px' }}
                     onScroll={handleScroll}
+                    ref={messageListRef}
                 >
                     <List
                         dataSource={messages}
-                        renderItem={item => (
-                            <List.Item key={item._id} style={{
-                                justifyContent: item.sender === currentUser.id ? 'flex-end' : 'flex-start',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: item.sender === currentUser.id ? 'flex-end' : 'flex-start',
-                                margin: '10px 0'
-                            }}>
-                                <div style={{ position: 'relative', maxWidth: '60%' }}>
-                                    <Avatar size="small" icon={<UserOutlined />} style={{ position: 'absolute', bottom: 0, left: item.sender === currentUser.id ? '100%' : '-40px', marginLeft: '5px', marginBottom: '5px' }} />
-                                    <div style={{
-                                        backgroundColor: item.sender === currentUser.id ? '#DCF8C6' : '#ECECEC',
-                                        borderRadius: '20px',
-                                        padding: '10px 20px',
-                                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                                        marginLeft: item.sender === currentUser.id ? '0' : '45px'
-                                    }}>
-                                        {item.message}
-                                        <div style={{ fontSize: '12px', color: 'grey', marginTop: '5px' }}>
-                                            {new Date(item.timestamp).toLocaleTimeString()}
+                        renderItem={item => {
+                            if (!item.sender) {
+                                return null;
+                            }
+
+                            return (
+                                <List.Item key={item._id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <div style={{ position: 'relative', maxWidth: '60%' }}>
+                                        <div style={{
+                                            backgroundColor: '#ECECEC',
+                                            borderRadius: '20px',
+                                            padding: '10px 20px',
+                                            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                                            marginLeft: '45px'
+                                        }}>
+                                            {item.message}
+                                            <div style={{ fontSize: '12px', color: 'grey', marginTop: '5px' }}>
+                                                {new Date(item.timestamp).toLocaleTimeString()}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </List.Item>
-                        )}
+                                </List.Item>
+                            );
+                        }}
                     />
                     <div ref={endOfMessagesRef} />
                 </div>

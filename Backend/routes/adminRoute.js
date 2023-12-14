@@ -3,6 +3,7 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const authenticateJwt = require('../middleware/authenticateJwt')
 const { uploadCourseImage, updateCourse } = require('../controllers/adminController');
+const {fetchChatHistory} = require('../common/chatUtils')
 
 // Public routes
 router.post('/signup', adminController.signup);
@@ -47,5 +48,7 @@ router.get('/sales/download', authenticateJwt(['admin']), adminController.downlo
 
 router.post('/update-report-status', authenticateJwt(['admin']), adminController.updateReportStatus);
 router.get('/report-requests', authenticateJwt(['admin']), adminController.getAllReports);
+
+router.get('/chat-history/:courseId', authenticateJwt(['admin']), fetchChatHistory);
 module.exports = router;
 

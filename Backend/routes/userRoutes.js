@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const authenticateJwt = require('../middleware/authenticateJwt');
+const {fetchChatHistory} = require('../common/chatUtils')
 
 // Public routes
 router.post('/signup', userController.signup);
@@ -41,6 +42,7 @@ router.post('/create-review/:courseId', authenticateJwt(['user']), userControlle
 router.post('/report-course', authenticateJwt(['user']), userController.createReport);
 
 router.get('/me', authenticateJwt(['user']), userController.me);
+router.get('/chat-history/:courseId', authenticateJwt(['user']), fetchChatHistory);
 
 
 module.exports = router;
