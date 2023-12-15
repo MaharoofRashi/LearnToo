@@ -1,5 +1,5 @@
 import React from 'react';
-import Appbar from './Appbar';
+import Appbar from './Appbar.jsx';
 
 const UserLayout = ({ children }) => {
     return (

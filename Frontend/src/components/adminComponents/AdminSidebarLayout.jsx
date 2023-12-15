@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Layout, Button, Avatar, Menu, Dropdown } from 'antd';
 import { Outlet } from 'react-router-dom';
 import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, LogoutOutlined, ProfileOutlined } from "@ant-design/icons";
-import Logo from '../components/AdminLogo.jsx';
-import MenuList from '../components/AdminMenuList.jsx';
-import ToggleThemeButton from "./ToggleThemeButton";
+import Logo from './AdminLogo.jsx';
+import MenuList from './AdminMenuList.jsx';
+import ToggleThemeButton from "./ToggleThemeButton.jsx";
 import { useRecoilState } from "recoil";
-import { darkThemeState } from "../store/atoms/darkThemeState.js";
-import { collapsedState } from "../store/atoms/collapsedState.js";
+import { darkThemeState } from "../../store/atoms/darkThemeState.js";
+import { collapsedState } from "../../store/atoms/CollapsedState.js";
 
 const { Header, Sider, Content } = Layout;
 

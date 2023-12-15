@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { cartState } from '../store/atoms/cartState';
+import { cartState } from '../../store/atoms/cartState.js';
 import {List, Button, Card, Space, Typography, Image, Checkbox, Divider, Row, Col, message, Input} from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import {discountedPriceState} from "../store/atoms/discountedPriceState.js";
+import {discountedPriceState} from "../../store/atoms/discountedPriceState.js";
 
 const { Title, Text } = Typography;
 

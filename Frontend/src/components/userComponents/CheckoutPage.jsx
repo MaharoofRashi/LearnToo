@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, List, Button, Modal, Form, Input, notification, Row, Col, Typography } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import {discountedPriceState} from "../store/atoms/discountedPriceState.js";
+import {discountedPriceState} from "../../store/atoms/discountedPriceState.js";
 const { Title, Text, Paragraph } = Typography;
 import { useRecoilState } from 'recoil';
 

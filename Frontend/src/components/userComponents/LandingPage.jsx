@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
-import { searchTermState } from '../store/atoms/searchState';
+import { searchTermState } from '../../store/atoms/searchState.js';
 import { Carousel, Card } from 'antd';
 import { useNavigate } from 'react-router-dom';
 

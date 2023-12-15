@@ -4,9 +4,9 @@ import { Row, Col, Card, Typography, Spin, Breadcrumb, Button, Rate, Tag, Space,
 import { HomeOutlined, ShoppingCartOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import { cartState } from '../store/atoms/cartState';
+import { cartState } from '../../store/atoms/cartState.js';
 import { message } from 'antd';
-import {discountedPriceState} from "../store/atoms/discountedPriceState.js";
+import {discountedPriceState} from "../../store/atoms/discountedPriceState.js";
 
 const { Title, Paragraph, Text } = Typography;
 

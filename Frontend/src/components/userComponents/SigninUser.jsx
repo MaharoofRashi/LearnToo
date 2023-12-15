@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 import { jwtDecode } from 'jwt-decode';
-import { currentUserState } from '../store/atoms/userState';
+import { currentUserState } from '../../store/atoms/userState.js';
 
 const { Title } = Typography;
 

@@ -3,8 +3,8 @@ import { Form, Input, Button, Card, Typography, message, Divider } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, KeyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import { otpVerifiedState } from '../store/atoms/otpVerifiedState.js';
-import { currentUserState } from '../store/atoms/userState.js';
+import { otpVerifiedState } from '../../store/atoms/otpVerifiedState.js';
+import { currentUserState } from '../../store/atoms/userState.js';
 import { jwtDecode } from 'jwt-decode';
 
 

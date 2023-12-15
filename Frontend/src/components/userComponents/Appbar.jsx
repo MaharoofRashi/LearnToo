@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRecoilState } from 'recoil';
-import { currentUserState } from '../store/atoms/userState.js';
+import { currentUserState } from '../../store/atoms/userState.js';
 import { useSetRecoilState } from 'recoil';
-import { searchTermState } from '../store/atoms/searchState';
+import { searchTermState } from '../../store/atoms/searchState.js';
 import { Link } from 'react-router-dom';
 import { Layout, Menu, Avatar, Button, Dropdown, Input, Space } from 'antd';
 import {
