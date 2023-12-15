@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRecoilValue } from 'recoil';
+import { searchTermState } from '../store/atoms/searchState';
 import { Carousel, Card } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,7 +8,9 @@ const { Meta } = Card;
 
 const LandingPage = () => {
     const [coursesByCategory, setCoursesByCategory] = useState({});
-    const [isHovered, setIsHovered] = useState({}); // State to manage hover status
+    const [isHovered, setIsHovered] = useState({});
+    const searchTerm = useRecoilValue(searchTermState);
+    const [filteredCourses, setFilteredCourses] = useState({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,6 +26,23 @@ const LandingPage = () => {
 
         fetchCourses();
     }, []);
+
+    useEffect(() => {
+        if (searchTerm) {
+            const filtered = {};
+            Object.keys(coursesByCategory).forEach(category => {
+                filtered[category] = coursesByCategory[category].filter(course =>
+                    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    course.description.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            });
+            setFilteredCourses(filtered);
+        } else {
+            setFilteredCourses(coursesByCategory);
+        }
+    }, [searchTerm, coursesByCategory]);
+
+    const isSearching = searchTerm.trim().length > 0;
 
 
     const scroll = (containerId, scrollOffset) => {
@@ -93,70 +114,126 @@ const LandingPage = () => {
 
     return (
         <div style={pageStyle}>
-            <div style={carouselContainerStyle}>
-                <Carousel autoplay>
-                    {coursesByCategory['Featured Courses']?.map(course => (
-                        <div key={course._id} style={{ position: 'relative' }}>
-                            <img src={`http://localhost:3000/${course.image}`} alt={course.title} style={imageStyle} />
-                            <h3 style={{
-                                textAlign: 'center',
-                                margin: '0',
-                                position: 'absolute',
-                                bottom: '20px',
-                                width: '100%',
-                                color: 'white',
-                                textShadow: '2px 2px 4px #000000'
-                            }}>
-                                {course.title}
-                            </h3>
-                        </div>
-                    ))}
-                </Carousel>
-            </div>
+            {!isSearching && (
+                <div style={carouselContainerStyle}>
+                    <Carousel autoplay>
+                        {coursesByCategory['Featured Courses']?.map(course => (
+                            <div key={course._id} style={{ position: 'relative' }}>
+                                <img src={`http://localhost:3000/${course.image}`} alt={course.title} style={imageStyle} />
+                                <h3 style={{
+                                    textAlign: 'center',
+                                    margin: '0',
+                                    position: 'absolute',
+                                    bottom: '20px',
+                                    width: '100%',
+                                    color: 'white',
+                                    textShadow: '2px 2px 4px #000000'
+                                }}>
+                                    {course.title}
+                                </h3>
+                            </div>
+                        ))}
+                    </Carousel>
+                </div>
+            )}
 
-            {Object.entries(coursesByCategory).map(([categoryName, courses], index) => {
-                const containerId = `container-${index}`;
-                const showScrollButtons = courses.length > 5; // Show scroll buttons if more than 5 courses
-                return (
-                    <div key={categoryName} style={{ margin: '20px 0', position: 'relative' }}
-                         onMouseEnter={() => handleMouseEnter(categoryName)}
-                         onMouseLeave={() => handleMouseLeave(categoryName)}>
-                        <h2 style={{ paddingLeft: '10px' }}>{categoryName}</h2>
-                        {showScrollButtons && isHovered[categoryName] && (
-                            <button
-                                style={{ ...scrollButtonStyle, left: '10px', display: 'block' }}
-                                onClick={() => scroll(containerId, -300)}
-                            >
-                                &lt;
-                            </button>
-                        )}
-                        <div id={containerId} style={cardListStyle} className="cardListStyle">
-                            {courses.map(course => (
-                                <div
-                                    key={course._id}
-                                    style={cardStyle}
-                                    onClick={() => navigate(`/course/${course._id}`)} // Add navigation here
-                                >
-                                    <Card
-                                        hoverable
-                                        cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
+            {!isSearching && (
+                <div>
+                    {Object.entries(coursesByCategory).map(([categoryName, courses], index) => {
+                        const containerId = `container-${index}`;
+                        const showScrollButtons = courses.length > 5; // Show scroll buttons if more than 5 courses
+                        return (
+                            <div key={categoryName} style={{ margin: '20px 0', position: 'relative' }}
+                                 onMouseEnter={() => handleMouseEnter(categoryName)}
+                                 onMouseLeave={() => handleMouseLeave(categoryName)}>
+                                <h2 style={{ paddingLeft: '10px' }}>{categoryName}</h2>
+                                {showScrollButtons && isHovered[categoryName] && (
+                                    <button
+                                        style={{ ...scrollButtonStyle, left: '10px', display: 'block' }}
+                                        onClick={() => scroll(containerId, -300)}
                                     >
-                                        <Meta title={course.title} description={`Price: $${course.price}`} />
-                                    </Card>
+                                        &lt;
+                                    </button>
+                                )}
+                                <div id={containerId} style={cardListStyle} className="cardListStyle">
+                                    {courses.map(course => (
+                                        <div
+                                            key={course._id}
+                                            style={cardStyle}
+                                            onClick={() => navigate(`/course/${course._id}`)} // Add navigation here
+                                        >
+                                            <Card
+                                                hoverable
+                                                cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
+                                            >
+                                                <Meta title={course.title} description={`Price: $${course.price}`} />
+                                            </Card>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                        {showScrollButtons && isHovered[categoryName] && (
-                            <button
-                                style={{ ...scrollButtonStyle, right: '10px', display: 'block' }}
-                                onClick={() => scroll(containerId, 300)}
-                            >
-                                &gt;
-                            </button>
-                        )}
-                    </div>
-                );
-            })}
+                                {showScrollButtons && isHovered[categoryName] && (
+                                    <button
+                                        style={{ ...scrollButtonStyle, right: '10px', display: 'block' }}
+                                        onClick={() => scroll(containerId, 300)}
+                                    >
+                                        &gt;
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {isSearching && (
+                Object.keys(filteredCourses).length > 0 ? (
+                    Object.entries(filteredCourses).map(([categoryName, courses], index) => {
+                        const containerId = `container-${index}`;
+                        const showScrollButtons = courses.length > 5;
+                        return (
+                            <div key={categoryName} style={{ margin: '20px 0', position: 'relative' }}
+                                 onMouseEnter={() => handleMouseEnter(categoryName)}
+                                 onMouseLeave={() => handleMouseLeave(categoryName)}>
+                                <h2 style={{ paddingLeft: '10px' }}>{categoryName}</h2>
+                                {showScrollButtons && isHovered[categoryName] && (
+                                    <button
+                                        style={{ ...scrollButtonStyle, left: '10px', display: 'block' }}
+                                        onClick={() => scroll(containerId, -300)}
+                                    >
+                                        &lt;
+                                    </button>
+                                )}
+                                <div id={containerId} style={cardListStyle} className="cardListStyle">
+                                    {courses.map(course => (
+                                        <div
+                                            key={course._id}
+                                            style={cardStyle}
+                                            onClick={() => navigate(`/course/${course._id}`)} // Add navigation here
+                                        >
+                                            <Card
+                                                hoverable
+                                                cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
+                                            >
+                                                <Meta title={course.title} description={`Price: $${course.price}`} />
+                                            </Card>
+                                        </div>
+                                    ))}
+                                </div>
+                                {showScrollButtons && isHovered[categoryName] && (
+                                    <button
+                                        style={{ ...scrollButtonStyle, right: '10px', display: 'block' }}
+                                        onClick={() => scroll(containerId, 300)}
+                                    >
+                                        &gt;
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div>No courses found for "{searchTerm}".</div>
+                )
+            )}
         </div>
     );
 };

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentUserState } from '../store/atoms/userState.js';
+import { useSetRecoilState } from 'recoil';
+import { searchTermState } from '../store/atoms/searchState';
 import { Link } from 'react-router-dom';
 import { Layout, Menu, Avatar, Button, Dropdown, Input, Space } from 'antd';
 import {
@@ -18,6 +20,7 @@ const { Search } = Input;
 
 const Appbar = () => {
     const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
+    const setSearchTerm = useSetRecoilState(searchTermState);
 
     useEffect(() => {
         const checkAuthState = () => {
@@ -71,7 +74,12 @@ const Appbar = () => {
                 LearnToo
             </Link>
             <Space align="center" size="large" style={{ height: '100%' }}>
-                <Search placeholder="Search courses" onSearch={value => console.log(value)} style={{ width: 400, verticalAlign: 'middle' }} enterButton />
+                <Search
+                    placeholder="Search courses"
+                    onSearch={value => setSearchTerm(value)}
+                    style={{ width: 400, verticalAlign: 'middle' }}
+                    enterButton
+                />
                 <Menu mode="horizontal" selectable={false} style={{ borderBottom: 'none', lineHeight: '64px' }}>
                     <Menu.Item key="home" icon={<HomeOutlined />}>
                         <Link to="/">Home</Link>

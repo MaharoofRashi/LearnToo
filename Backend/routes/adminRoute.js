@@ -50,5 +50,7 @@ router.post('/update-report-status', authenticateJwt(['admin']), adminController
 router.get('/report-requests', authenticateJwt(['admin']), adminController.getAllReports);
 
 router.get('/chat-history/:courseId', authenticateJwt(['admin']), fetchChatHistory);
+
+router.get('/subscriptions', authenticateJwt(['admin']), adminController.subscriptions);
 module.exports = router;
 

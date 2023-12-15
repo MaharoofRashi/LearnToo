@@ -796,3 +796,45 @@ exports.updateReportStatus = async (req, res) => {
     }
     res.json({ message: `Report status updated to ${status}.` });
 };
+
+
+
+exports.subscriptions = async (req, res) => {
+    try {
+        const orders = await Order.find({ paymentStatus: 'Completed' })
+            .populate('userId', 'name')
+            .populate('courses', 'title');
+
+        let totalEarnings = 0;
+        let coursePurchaseCounts = {};
+
+        const subscriptions = orders.map(order => {
+            totalEarnings += order.totalAmount;
+            order.courses.forEach(course => {
+                if (!coursePurchaseCounts[course._id]) {
+                    coursePurchaseCounts[course._id] = { count: 0, title: course.title };
+                }
+                coursePurchaseCounts[course._id].count += 1;
+            });
+
+            return {
+                subscriptionId: order._id,
+                userId: order.userId._id,
+                userName: order.userId.name,
+                courses: order.courses.map(course => course.title).join(", "),
+                amount: order.totalAmount,
+                orderDate: order.orderDate
+            };
+        });
+
+        res.json({
+            success: true,
+            data: subscriptions,
+            totalEarnings,
+            coursePurchaseCounts
+        });
+    } catch (error) {
+        console.error('Error fetching subscriptions:', error);
+        res.status(500).send('Failed to fetch subscriptions. Please try again later.');
+    }
+};
