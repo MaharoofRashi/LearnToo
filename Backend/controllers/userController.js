@@ -112,7 +112,7 @@ exports.purchaseCourse = async (req, res) => {
     if (course) {
         const user = await User.findOne({ username: req.user.username });
         if (user) {
-            user.purchasedCourses.push(course);
+            user.purchasedCourses.unshift(course);
             await user.save();
             res.json({ message: 'Course purchased successfully' });
         } else {
@@ -517,7 +517,14 @@ exports.verifyPayment = async (req, res) => {
             });
             await newOrder.save();
 
-            await User.findByIdAndUpdate(userId, { $addToSet: { purchasedCourses: courseId } });
+            await User.findByIdAndUpdate(userId, {
+                $push: {
+                    purchasedCourses: {
+                        $each: [courseId],
+                        $position: 0
+                    }
+                }
+            });
             res.status(200).json({ verified: true, message: "Payment verified successfully" });
         } catch (error) {
             console.error("Error in Verification:", error);
