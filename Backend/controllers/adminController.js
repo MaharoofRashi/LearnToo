@@ -269,18 +269,26 @@ exports.verifyOtp = async (req, res) => {
 
 exports.createCategory = async (req, res) => {
     const { name } = req.body;
+    const normalizedName = name.toLowerCase().replace(/\s+/g, '');
+
     try {
-        const existingCategory = await Category.findOne({ name: name});
-        if(existingCategory) {
+        const categories = await Category.find({});
+        const existingCategory = categories.find(category =>
+            category.name.toLowerCase().replace(/\s+/g, '') === normalizedName
+        );
+
+        if (existingCategory) {
             return res.status(400).json({ message: "Category already exists." });
         }
+
         let category = new Category({ name });
         category = await category.save();
+
         res.status(201).json(category);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 exports.getCategory = async (req, res) => {
     try {
@@ -293,17 +301,29 @@ exports.getCategory = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     const { id } = req.params;
+    const newName = req.body.name;
+    const normalizedName = newName.toLowerCase().replace(/\s+/g, '');
+
     try {
-        const category = await Category.findByIdAndUpdate(id, { name: req.body.name }, { new: true});
-        if(!category){
-            res.status(404).json({ message: "Category not found"})
-        } else {
-            res.status(200).json(category);
+        const categories = await Category.find({ _id: { $ne: id } });
+        const existingCategory = categories.find(category =>
+            category.name.toLowerCase().replace(/\s+/g, '') === normalizedName
+        );
+
+        if (existingCategory) {
+            return res.status(400).json({ message: "Another category with the same name already exists." });
         }
+
+        const category = await Category.findByIdAndUpdate(id, { name: newName }, { new: true });
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        res.status(200).json(category);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "An error occurred during the update." });
     }
-}
+};
 
 exports.deleteCategory = async (req, res) => {
     const { id } = req.params;
