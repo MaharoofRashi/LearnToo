@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Button, Row, Col, message } from 'antd';
+import { Card, Typography, Button, Row, Col, message, Progress } from 'antd';
 import { useNavigate } from "react-router-dom";
+import { Modal } from 'antd';
+
 
 const { Title, Paragraph } = Typography;
 
@@ -9,7 +11,16 @@ export function Course({ course, onDelete }) {
 
     const handleDelete = (e) => {
         e.stopPropagation();
-        onDelete(course._id);
+        Modal.confirm({
+            title: 'Are you sure you want to delete this course?',
+            content: 'This action cannot be undone.',
+            okText: 'Yes, delete it',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk() {
+                onDelete(course._id);
+            }
+        });
     };
 
     return (
@@ -34,6 +45,9 @@ export function Course({ course, onDelete }) {
 
 function Courses() {
     const [courses, setCourses] = useState([]);
+    const [visibleCourses, setVisibleCourses] = useState(8);
+    const [loadingProgress, setLoadingProgress] = useState(0);
+    const [isFetching, setIsFetching] = useState(false);
     const navigate = useNavigate();
 
     const fetchCourses = () => {
@@ -71,16 +85,48 @@ function Courses() {
             });
     };
 
+    const checkIfBottom = () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+            setIsFetching(true);
+        }
+    };
+
     useEffect(() => {
         fetchCourses();
+        window.addEventListener('scroll', checkIfBottom);
+        return () => window.removeEventListener('scroll', checkIfBottom);
     }, []);
 
+    useEffect(() => {
+        let interval;
+        if (isFetching && visibleCourses < courses.length) {
+            interval = setInterval(() => {
+                setLoadingProgress(prevProgress => {
+                    if (prevProgress >= 100) {
+                        clearInterval(interval);
+                        setVisibleCourses(prev => prev + 8);
+                        return 0;
+                    }
+                    return prevProgress + 10;
+                });
+            }, 100);
+        }
+        return () => interval && clearInterval(interval);
+    }, [isFetching, visibleCourses, courses.length]);
+
     return (
-        <Row gutter={16} justify="start">
-            {courses.map(course => (
-                <Course key={course._id} course={course} onDelete={deleteCourseById} />
-            ))}
-        </Row>
+        <div>
+            <Row gutter={16} justify="start">
+                {courses.slice(0, visibleCourses).map(course => (
+                    <Course key={course._id} course={course} onDelete={deleteCourseById} />
+                ))}
+            </Row>
+            {visibleCourses < courses.length && (
+                <Row justify="center" style={{ marginTop: '20px' }}>
+                    <Progress type="circle" percent={loadingProgress} />
+                </Row>
+            )}
+        </div>
     );
 }
 
