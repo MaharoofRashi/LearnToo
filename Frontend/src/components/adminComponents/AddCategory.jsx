@@ -9,6 +9,7 @@ function CategoryPage() {
     const [editingCategory, setEditingCategory] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         fetchCategories();
@@ -16,7 +17,7 @@ function CategoryPage() {
 
     const fetchCategories = () => {
         // Replace with your actual GET request to backend
-        fetch("http://localhost:3000/admin/categories", {
+        fetch(`${baseUrl}/admin/categories`, {
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token") // Replace with your auth token
             }
@@ -33,7 +34,7 @@ function CategoryPage() {
 
     const onFinish = async (values) => {
         try {
-            const response = await fetch("http://localhost:3000/admin/categories", {
+            const response = await fetch(`${baseUrl}/admin/categories`, {
                 method: "POST",
                 body: JSON.stringify(values),
                 headers: {
@@ -58,7 +59,7 @@ function CategoryPage() {
 
 
     const handleDelete = (categoryId) => {
-        fetch(`http://localhost:3000/admin/categories/${categoryId}`, {
+        fetch(`${baseUrl}/admin/categories/${categoryId}`, {
             method: "DELETE",
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token")
@@ -89,7 +90,7 @@ function CategoryPage() {
     const handleUpdate = async (values) => {
         try {
             // Send the PUT request using fetch
-            const response = await fetch(`http://localhost:3000/admin/categories/${editingCategory._id}`, {
+            const response = await fetch(`${baseUrl}/admin/categories/${editingCategory._id}`, {
                 method: "PUT",
                 body: JSON.stringify(values),
                 headers: {

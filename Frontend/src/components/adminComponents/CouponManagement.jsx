@@ -12,6 +12,7 @@ const CouponManagement = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentCoupon, setCurrentCoupon] = useState(null);
     const [form] = Form.useForm();
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         fetchCoupons();
@@ -20,7 +21,7 @@ const CouponManagement = () => {
     const fetchCoupons = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3000/admin/coupons', {
+            const response = await axios.get(`${baseUrl}/admin/coupons`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setCoupons(response.data.coupons);
@@ -33,12 +34,12 @@ const CouponManagement = () => {
         const token = localStorage.getItem('token');
         try {
             if (currentCoupon) {
-                await axios.put(`http://localhost:3000/admin/coupon/${currentCoupon._id}`, values, {
+                await axios.put(`${baseUrl}/admin/coupon/${currentCoupon._id}`, values, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 message.success('Coupon updated successfully');
             } else {
-                await axios.post('http://localhost:3000/admin/coupon', values, {
+                await axios.post(`${baseUrl}/admin/coupon`, values, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 message.success('Coupon created successfully');
@@ -53,7 +54,7 @@ const CouponManagement = () => {
     const deleteCoupon = async (couponId) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:3000/admin/coupon/${couponId}`, {
+            await axios.delete(`${baseUrl}/admin/coupon/${couponId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             message.success('Coupon deleted successfully');

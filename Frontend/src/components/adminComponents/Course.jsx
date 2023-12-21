@@ -29,9 +29,10 @@ function Course() {
     const [form] = Form.useForm();
     const [categories, setCategories] = useState([]);
     const token = localStorage.getItem("token");
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
-        fetch("http://localhost:3000/admin/categories", {
+        fetch(`${baseUrl}/admin/categories`, {
             headers: {
                 "Authorization": "Bearer " + token,
             },
@@ -49,7 +50,7 @@ function Course() {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await fetch("http://localhost:3000/admin/courses", {
+                const response = await fetch(`${baseUrl}/admin/courses`, {
                     method: "GET",
                     headers: {
                         "Authorization": "Bearer " + localStorage.getItem("token")
@@ -116,7 +117,7 @@ function Course() {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/admin/course/${courseId}`, {
+            const response = await fetch(`${baseUrl}/admin/course/${courseId}`, {
                 method: "PUT",
                 body: formData,
                 headers: {

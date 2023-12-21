@@ -8,6 +8,7 @@ const { Title, Paragraph } = Typography;
 
 export function Course({ course, onDelete }) {
     const navigate = useNavigate();
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     const handleDelete = (e) => {
         e.stopPropagation();
@@ -28,7 +29,7 @@ export function Course({ course, onDelete }) {
             <Card
                 hoverable
                 style={{ width: '100%' }}
-                cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />}
+                cover={<img alt={course.title} src={`${baseUrl}/${course.image}`} style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />}
                 onClick={() => navigate(`/admin/course/${course._id}`)}
             >
                 <Title level={4}>{course.title}</Title>
@@ -49,9 +50,10 @@ function Courses() {
     const [loadingProgress, setLoadingProgress] = useState(0);
     const [isFetching, setIsFetching] = useState(false);
     const navigate = useNavigate();
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     const fetchCourses = () => {
-        fetch("http://localhost:3000/admin/courses/", {
+        fetch(`${baseUrl}/admin/courses/`, {
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token")
@@ -68,7 +70,7 @@ function Courses() {
     };
 
     const deleteCourseById = (courseId) => {
-        fetch(`http://localhost:3000/admin/courses/${courseId}`, {
+        fetch(`${baseUrl}/admin/courses/${courseId}`, {
             method: "DELETE",
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token")

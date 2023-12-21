@@ -24,13 +24,13 @@ ChartJS.register(
 );
 
 
-const BASE_URL = 'http://localhost:3000/admin';
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const getSalesReport = async (reportType, startDate, endDate) => {
     try {
         const token = localStorage.getItem('token');
 
-        const response = await axios.get(`${BASE_URL}/sales/${reportType}`, {
+        const response = await axios.get(`${baseUrl}/admin/sales/${reportType}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             },
@@ -79,7 +79,7 @@ const SalesManagementPage = () => {
                 params.endDate = dateRange[1].format('YYYY-MM-DD');
             }
 
-            const response = await axios.get(`${BASE_URL}/sales/download`, {
+            const response = await axios.get(`${baseUrl}/admin/sales/download`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 },

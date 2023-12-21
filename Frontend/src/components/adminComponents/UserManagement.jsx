@@ -3,10 +3,11 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Paper, Button } from 
 
 function UserManagement() {
     const [users, setUsers] = useState([]);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         // Fetch all users
-        fetch("http://localhost:3000/admin/users", {
+        fetch(`${baseUrl}/admin/users`, {
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token")
@@ -22,7 +23,7 @@ function UserManagement() {
     }, []);
 
     const updateUserStatus = (userId, isBlocked) => {
-        fetch(`http://localhost:3000/admin/users/${userId}`, {
+        fetch(`${baseUrl}/admin/users/${userId}`, {
             method: "PUT",
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token"),

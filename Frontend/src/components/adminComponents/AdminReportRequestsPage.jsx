@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const AdminReportRequestsPage = () => {
     const [reports, setReports] = useState([]);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         fetchReports();
@@ -12,7 +13,7 @@ const AdminReportRequestsPage = () => {
     const fetchReports = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3000/admin/report-requests', {
+            const response = await axios.get(`${baseUrl}/admin/report-requests`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setReports(response.data);
@@ -24,7 +25,7 @@ const AdminReportRequestsPage = () => {
     const updateReportStatus = async (reportId, status) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://localhost:3000/admin/update-report-status', { reportId, status }, {
+            await axios.post(`${baseUrl}/admin/update-report-status`, { reportId, status }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             message.success(`Report ${status}`);

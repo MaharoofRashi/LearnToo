@@ -12,6 +12,7 @@ const Signin = () => {
     const [form] = Form.useForm();
     const [error, setError] = useState("");
     const [isOtpSent, setIsOtpSent] = useState(false);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     // Check if the user is already logged in
     useEffect(() => {
@@ -26,13 +27,13 @@ const Signin = () => {
         let payload;
 
         if (loginOption === "password") {
-            apiURL = "http://localhost:3000/admin/login";
+            apiURL = `${baseUrl}/admin/login`;
             payload = {
                 username: values.username,
                 password: values.password,
             };
         } else {
-            apiURL = "http://localhost:3000/admin/verify-otp";
+            apiURL = `${baseUrl}/admin/verify-otp`;
             payload = {
                 username: values.username,
                 otp: values.otp,
@@ -65,7 +66,7 @@ const Signin = () => {
         // Only proceed if the username (email) field is valid
         form.validateFields(['username'])
             .then(async (values) => {
-                const apiURL = "http://localhost:3000/admin/request-otp";
+                const apiURL = `${baseUrl}/admin/request-otp`;
                 const payload = {
                     username: values.username,
                 };

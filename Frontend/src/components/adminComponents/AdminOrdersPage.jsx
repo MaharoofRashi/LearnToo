@@ -10,6 +10,7 @@ const AdminOrdersPage = () => {
     const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
     const [error, setError] = useState(null);
     const [subscriptionError, setSubscriptionError] = useState(null);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -17,7 +18,7 @@ const AdminOrdersPage = () => {
             setError(null);
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:3000/admin/orders', {
+                const response = await axios.get(`${baseUrl}/admin/orders`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log(response.data)
@@ -35,7 +36,7 @@ const AdminOrdersPage = () => {
             setSubscriptionError(null);
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:3000/admin/subscriptions', {
+                const response = await axios.get(`${baseUrl}/admin/subscriptions`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log('data', response.data.data)

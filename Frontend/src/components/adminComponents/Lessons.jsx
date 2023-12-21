@@ -25,12 +25,13 @@ const AdminManageLessons = () => {
     const [fileList, setFileList] = useState([]);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [selectedFileType, setSelectedFileType] = useState('');
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     // Fetch courses on component mount
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/admin/courses', getAuthHeaders());
+                const response = await axios.get(`${baseUrl}/admin/courses`, getAuthHeaders());
                 // Access the courses array from the response object
                 setCourses(response.data.courses || []);
             } catch (error) {
@@ -51,7 +52,7 @@ const AdminManageLessons = () => {
         }
         const fetchLessons = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/admin/courses/${selectedCourse}/lessons`, getAuthHeaders());
+                const response = await axios.get(`${baseUrl}/admin/courses/${selectedCourse}/lessons`, getAuthHeaders());
                 setLessons(response.data);
             } catch (error) {
                 message.error('Error fetching lessons');
@@ -120,15 +121,15 @@ const AdminManageLessons = () => {
                 formData.append('file', fileList[0].originFileObj);
                 config.headers['Content-Type'] = 'multipart/form-data';
                 if (currentLesson) {
-                    response = await axios.put(`http://localhost:3000/admin/lessons/${currentLesson._id}`, formData, config);
+                    response = await axios.put(`${baseUrl}/admin/lessons/${currentLesson._id}`, formData, config);
                 } else {
-                    response = await axios.post(`http://localhost:3000/admin/courses/${selectedCourse}/lessons`, formData, config);
+                    response = await axios.post(`${baseUrl}/admin/courses/${selectedCourse}/lessons`, formData, config);
                 }
             } else {
                 if (currentLesson) {
-                    response = await axios.put(`http://localhost:3000/admin/lessons/${currentLesson._id}`, jsonData, config);
+                    response = await axios.put(`${baseUrl}/admin/lessons/${currentLesson._id}`, jsonData, config);
                 } else {
-                    response = await axios.post(`http://localhost:3000/admin/courses/${selectedCourse}/lessons`, jsonData, config);
+                    response = await axios.post(`${baseUrl}/admin/courses/${selectedCourse}/lessons`, jsonData, config);
                 }
             }
 
@@ -144,7 +145,7 @@ const AdminManageLessons = () => {
 
     const fetchLessonsAndUpdateState = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/admin/courses/${selectedCourse}/lessons`, getAuthHeaders());
+            const response = await axios.get(`${baseUrl}/admin/courses/${selectedCourse}/lessons`, getAuthHeaders());
             setLessons(response.data);
         } catch (error) {
             message.error('Error fetching lessons');
@@ -158,7 +159,7 @@ const AdminManageLessons = () => {
 
     const handleDeleteLesson = async lessonId => {
         try {
-            await axios.delete(`http://localhost:3000/admin/lessons/${lessonId}`, getAuthHeaders());
+            await axios.delete(`${baseUrl}/admin/lessons/${lessonId}`, getAuthHeaders());
             message.success('Lesson deleted successfully');
             await fetchLessonsAndUpdateState();
         } catch (error) {

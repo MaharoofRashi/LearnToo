@@ -13,9 +13,10 @@ function AddCourse() {
     const [fileList, setFileList] = useState([]);
     const [categories, setCategories] = useState([]);
     const token1 = localStorage.getItem("token");
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
-        fetch("http://localhost:3000/admin/categories", {
+        fetch(`${baseUrl}/admin/categories`, {
             headers: {
                 "Authorization": "Bearer " + token1,
             },
@@ -81,7 +82,7 @@ function AddCourse() {
 
         try {
             // Use axios to send the POST request
-            const response = await axios.post("http://localhost:3000/admin/courses", formData, config);
+            const response = await axios.post(`${baseUrl}/admin/courses`, formData, config);
             // If the request is successful, handle the response here
             console.log(response.data);
             message.success('Course added successfully!');

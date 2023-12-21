@@ -6,6 +6,7 @@ import {useState} from "react";
 function Signup() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     return <div>
         <div style={{
@@ -53,7 +54,7 @@ function Signup() {
                         function callback1(res) {
                             res.json().then(callback2)
                         }
-                        fetch("http://localhost:3000/admin/signup", {
+                        fetch(`${baseUrl}/admin/signup`, {
                             method: "POST",
                             body: JSON.stringify({
                                 username: email,

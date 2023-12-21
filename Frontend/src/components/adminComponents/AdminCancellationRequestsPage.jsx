@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const AdminCancellationRequestsPage = () => {
     const [requests, setRequests] = useState([]);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         fetchRequests();
@@ -12,7 +13,7 @@ const AdminCancellationRequestsPage = () => {
     const fetchRequests = async () => {
         try {
             const token = localStorage.getItem('token'); // Retrieve the token
-            const response = await axios.get('http://localhost:3000/admin/cancellation-requests', {
+            const response = await axios.get(`${baseUrl}/admin/cancellation-requests`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -26,7 +27,7 @@ const AdminCancellationRequestsPage = () => {
     const updateRequestStatus = async (requestId, status) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://localhost:3000/admin/update-cancellation-request', { requestId, status }, {
+            await axios.post(`${baseUrl}/admin/update-cancellation-request`, { requestId, status }, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
