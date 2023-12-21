@@ -1,2 +1,2 @@
 # LearnToo
-This is a project of e-learning platform
+This is a project of e-learning platform.
