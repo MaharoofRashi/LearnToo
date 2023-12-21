@@ -19,6 +19,7 @@ const Chatting = () => {
     const socketRef = useRef();
     const [unreadCounts, setUnreadCounts] = useState({});
     const messageListRef = useRef(null);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     const token = localStorage.getItem('token');
     let userRole;
@@ -29,11 +30,11 @@ const Chatting = () => {
     const fetchMoreMessages = async () => {
         if (activeCourse && hasMoreMessages) {
             try {
-                const baseUrl = userRole === 'admin'
-                    ? `http://localhost:3000/admin/chat-history/${activeCourse}`
-                    : `http://localhost:3000/user/chat-history/${activeCourse}`;
+                const base_Url = userRole === 'admin'
+                    ? `${baseUrl}/admin/chat-history/${activeCourse}`
+                    : `${baseUrl}/user/chat-history/${activeCourse}`;
 
-                const response = await axios.get(baseUrl, {
+                const response = await axios.get(base_Url, {
                     params: { offset: messageOffset, limit: messageLimit },
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -56,14 +57,14 @@ const Chatting = () => {
 
         const fetchUserDataAndCourses = async () => {
             try {
-                const userEndpoint = userRole === 'admin' ? 'http://localhost:3000/admin/me' : 'http://localhost:3000/user/me';
+                const userEndpoint = userRole === 'admin' ? `${baseUrl}/admin/me` : `${baseUrl}/user/me`;
                 const userResponse = await axios.get(userEndpoint, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log(userResponse.data.id)
                 setCurrentUser(userResponse.data);
 
-                const coursesEndpoint = userRole === 'admin' ? 'http://localhost:3000/admin/courses' : 'http://localhost:3000/user/purchasedCourses';
+                const coursesEndpoint = userRole === 'admin' ? `${baseUrl}/admin/courses` : `${baseUrl}/user/purchasedCourses`;
 
                 const coursesResponse = await axios.get(coursesEndpoint, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -91,7 +92,7 @@ const Chatting = () => {
         if (!currentUser) return;
         const isAdmin = userRole === 'admin';
 
-        socketRef.current = io('http://localhost:3000', {
+        socketRef.current = io(`${baseUrl}`, {
             query: { userId: currentUser.id, isAdmin: isAdmin },
             extraHeaders: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
