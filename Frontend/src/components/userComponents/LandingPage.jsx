@@ -12,11 +12,12 @@ const LandingPage = () => {
     const searchTerm = useRecoilValue(searchTermState);
     const [filteredCourses, setFilteredCourses] = useState({});
     const navigate = useNavigate();
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await fetch('http://localhost:3000/user/courses');
+                const response = await fetch(`${baseUrl}/user/courses`);
                 const data = await response.json();
                 setCoursesByCategory(data.coursesByCategory);
             } catch (error) {
@@ -119,7 +120,7 @@ const LandingPage = () => {
                     <Carousel autoplay>
                         {coursesByCategory['Featured Courses']?.map(course => (
                             <div key={course._id} style={{ position: 'relative' }}>
-                                <img src={`http://localhost:3000/${course.image}`} alt={course.title} style={imageStyle} />
+                                <img src={`${baseUrl}/${course.image}`} alt={course.title} style={imageStyle} />
                                 <h3 style={{
                                     textAlign: 'center',
                                     margin: '0',
@@ -164,7 +165,7 @@ const LandingPage = () => {
                                         >
                                             <Card
                                                 hoverable
-                                                cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
+                                                cover={<img alt={course.title} src={`${baseUrl}/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
                                             >
                                                 <Meta title={course.title} description={`Price: $${course.price}`} />
                                             </Card>
@@ -212,7 +213,7 @@ const LandingPage = () => {
                                         >
                                             <Card
                                                 hoverable
-                                                cover={<img alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
+                                                cover={<img alt={course.title} src={`${baseUrl}/${course.image}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />}
                                             >
                                                 <Meta title={course.title} description={`Price: $${course.price}`} />
                                             </Card>

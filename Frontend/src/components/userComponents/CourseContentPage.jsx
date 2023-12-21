@@ -6,11 +6,12 @@ const { Title } = Typography;
 const CourseContentPage = () => {
     const { courseId } = useParams();
     const [lessons, setLessons] = useState([]);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const fetchLessons = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/user/course/${courseId}/lessons`);
+                const response = await fetch(`${baseUrl}/user/course/${courseId}/lessons`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

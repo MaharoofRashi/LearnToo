@@ -16,6 +16,7 @@ const CheckoutPage = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [discountedPrice] = useRecoilState(discountedPriceState);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -32,7 +33,7 @@ const CheckoutPage = () => {
 
         const fetchDirectCourse = async (courseId) => {
             try {
-                const response = await axios.get(`http://localhost:3000/user/course/details/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
+                const response = await axios.get(`${baseUrl}/user/course/details/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
                 setCourses([response.data.course]);
             } catch (error) {
                 notification.error({ message: 'Failed to load course', description: error.message });
@@ -40,7 +41,7 @@ const CheckoutPage = () => {
         };
         const fetchCourseDetails = async (courseId) => {
             try {
-                const response = await axios.get(`http://localhost:3000/user/course/details/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
+                const response = await axios.get(`${baseUrl}/user/course/details/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
                 return response.data.course;
             } catch (error) {
                 console.error('Error fetching course details:', error);
@@ -56,11 +57,11 @@ const CheckoutPage = () => {
 
         const fetchCoursesFromCart = async () => {
             try {
-                const cartResponse = await axios.get('http://localhost:3000/user/cart', { headers: { Authorization: `Bearer ${token}` } });
+                const cartResponse = await axios.get(`${baseUrl}/user/cart`, { headers: { Authorization: `Bearer ${token}` } });
                 const cartCourseIds = cartResponse.data.cart;
 
                 const courseDetailsPromises = cartCourseIds.map(courseId =>
-                    axios.get(`http://localhost:3000/user/course/details/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
+                    axios.get(`${baseUrl}/user/course/details/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
                 );
 
                 const courseDetailsResponses = await Promise.all(courseDetailsPromises);
@@ -83,7 +84,7 @@ const CheckoutPage = () => {
         fetchSelectedCourses();
         const fetchAddresses = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/user/profile', { headers: { Authorization: `Bearer ${token}` } });
+                const response = await axios.get('${baseUrl}/user/profile', { headers: { Authorization: `Bearer ${token}` } });
                 setAddresses(response.data.userProfile.addresses);
                 const defaultAddress = response.data.userProfile.addresses.find(address => address.isDefault);
                 if (defaultAddress) {
@@ -104,7 +105,7 @@ const CheckoutPage = () => {
     const handleAddNewAddress = async () => {
         try {
             const newAddress = await form.validateFields(); // This will ensure all required fields are filled
-            const response = await axios.post('http://localhost:3000/user/profile/address', newAddress, { headers: { Authorization: `Bearer ${token}` } });
+            const response = await axios.post(`${baseUrl}/user/profile/address`, newAddress, { headers: { Authorization: `Bearer ${token}` } });
             setAddresses([...addresses, response.data]);
             notification.success({ message: 'New address added successfully' });
             setIsModalVisible(false);
@@ -125,7 +126,7 @@ const CheckoutPage = () => {
 
             const originalAmount = calculateOriginalTotalAmount();
             const amount = calculateTotalAmount();
-            const orderResponse = await axios.post('http://localhost:3000/user/create-order', { amount }, { headers: { Authorization: `Bearer ${token}` } });
+            const orderResponse = await axios.post(`${baseUrl}/user/create-order`, { amount }, { headers: { Authorization: `Bearer ${token}` } });
             const { id: orderId } = orderResponse.data;
             const options = {
                 key: 'rzp_test_ArWcR87jecE0KX',
@@ -136,7 +137,7 @@ const CheckoutPage = () => {
                 order_id: orderId,
                 handler: async (response) => {
                     try {
-                        const verificationResponse = await axios.post('http://localhost:3000/user/verify-payment', {
+                        const verificationResponse = await axios.post(`${baseUrl}/user/verify-payment`, {
                             ...response,
                             orderCreationId: orderId,
                             courseId: courses.map(course => course._id),
@@ -147,7 +148,7 @@ const CheckoutPage = () => {
 
                         if (verificationResponse.data.verified) {
                             notification.success({ message: 'Payment successful' });
-                            await axios.post('http://localhost:3000/user/clear-cart', {
+                            await axios.post(`${baseUrl}/user/clear-cart`, {
                                 purchasedCourseIds: courses.map(course => course._id)
                             }, { headers: { Authorization: `Bearer ${token}` } });
                             navigate('/purchased-courses');
@@ -212,7 +213,7 @@ const CheckoutPage = () => {
                                 <Col span={6}>
                                     <img
                                         alt={course.title}
-                                        src={`http://localhost:3000/${course.image}`}
+                                        src={`${baseUrl}/${course.image}`}
                                         style={{ width: '100%', borderRadius: '10px' }}
                                     />
                                 </Col>

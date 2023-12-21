@@ -18,6 +18,7 @@ const Signup = () => {
     const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
     const [countdown, setCountdown] = useState(0);
     const [loading, setLoading] = useState(false);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -56,7 +57,7 @@ const Signup = () => {
             const email = form.getFieldValue('email');
             if (email) {
                 setLoading(true);
-                const response = await fetch('http://localhost:3000/user/request-otp', {
+                const response = await fetch(`${baseUrl}/user/request-otp`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -85,7 +86,7 @@ const Signup = () => {
         try {
             const values = form.getFieldsValue(['email', 'otp']);
             setLoading(true);
-            const response = await fetch('http://localhost:3000/user/verify-otp', {
+            const response = await fetch(`${baseUrl}/user/verify-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -116,7 +117,7 @@ const Signup = () => {
         }
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/user/signup', {
+            const response = await fetch(`${baseUrl}/user/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

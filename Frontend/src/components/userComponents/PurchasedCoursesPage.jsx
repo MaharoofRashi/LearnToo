@@ -13,13 +13,14 @@ const PurchasedCoursesPage = () => {
     const [currentCourseForReview, setCurrentCourseForReview] = useState(null);
     const [isReportModalVisible, setIsReportModalVisible] = useState(false);
     const [reportData, setReportData] = useState({ reason: '' });
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
 
     useEffect(() => {
         const fetchPurchasedCourses = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:3000/user/purchasedCourses', {
+                const response = await axios.get(`${baseUrl}/user/purchasedCourses`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setPurchasedCourses(response.data.purchasedCourses);
@@ -33,7 +34,7 @@ const PurchasedCoursesPage = () => {
     const submitReview = async (rating, comment) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`http://localhost:3000/user/create-review/${currentCourseForReview._id}`, { rating, comment }, {
+            const response = await axios.post(`${baseUrl}/user/create-review/${currentCourseForReview._id}`, { rating, comment }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -57,7 +58,7 @@ const PurchasedCoursesPage = () => {
         const handleReportSubmit = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.post(`http://localhost:3000/user/report-course`, {
+                const response = await axios.post(`${baseUrl}/user/report-course`, {
                     courseId: courseId,
                     reason: reportData.reason
                 }, {
@@ -174,7 +175,7 @@ const PurchasedCoursesPage = () => {
                         <Card
                             hoverable
                             style={{ height: '380px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-                            cover={<Image alt={course.title} src={`http://localhost:3000/${course.image}`} style={{ width: '100%', height: '220px', objectFit: 'cover' }} />}
+                            cover={<Image alt={course.title} src={`${baseUrl}/${course.image}`} style={{ width: '100%', height: '220px', objectFit: 'cover' }} />}
                             onClick={() => navigate(`/course-content/${course._id}`)}
                         >
                             <Card.Meta title={course.title} description={course.description} style={{ flexGrow: 1, overflow: 'hidden' }} />

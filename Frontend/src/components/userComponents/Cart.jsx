@@ -15,6 +15,7 @@ const CartPage = () => {
     const [selectedCourses, setSelectedCourses] = useState(initialSelectedCourses);
     const [couponCode, setCouponCode] = useState('');
     const [discountedPrice, setDiscountedPrice] = useRecoilState(discountedPriceState);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const fetchCart = async () => {
@@ -25,7 +26,7 @@ const CartPage = () => {
             }
 
             try {
-                const response = await fetch('http://localhost:3000/user/cart', {
+                const response = await fetch(`${baseUrl}/user/cart`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -61,7 +62,7 @@ const CartPage = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/user/cart/${courseId}`, {
+            const response = await fetch(`${baseUrl}/user/cart/${courseId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -102,7 +103,7 @@ const CartPage = () => {
     const applyCoupon = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:3000/user/apply-coupon', {
+            const response = await fetch(`${baseUrl}/user/apply-coupon`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -158,7 +159,7 @@ const CartPage = () => {
                                         width={150}
                                         height={150}
                                         alt={item.title}
-                                        src={`http://localhost:3000/${item.image}`}
+                                        src={`${baseUrl}/${item.image}`}
                                     />
                                 </Col>
                                 <Col flex="auto" style={{ paddingLeft: '20px' }}>

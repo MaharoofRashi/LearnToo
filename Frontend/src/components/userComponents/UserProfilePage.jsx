@@ -11,10 +11,11 @@ const UserProfilePage = () => {
     const [modalType, setModalType] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [orders, setOrders] = useState([]);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     const token = localStorage.getItem('token');
     const axiosInstance = axios.create({
-        baseURL: 'http://localhost:3000',
+        baseUrl,
         headers: { Authorization: `Bearer ${token}` }
     });
 

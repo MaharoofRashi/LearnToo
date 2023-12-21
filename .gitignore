@@ -3,3 +3,4 @@
 .env
 /Backend/.env
 /Backend/uploads
+/Frontend/.env

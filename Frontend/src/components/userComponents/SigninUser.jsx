@@ -13,6 +13,7 @@ const Signin = () => {
     const [form] = Form.useForm();
     const setCurrentUser = useSetRecoilState(currentUserState);
     const [loading, setLoading] = useState(false);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -30,7 +31,7 @@ const Signin = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/user/login', {
+            const response = await fetch(`${baseUrl}/user/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -22,15 +22,16 @@ const CourseDetailsPage = () => {
     const [cancellationReason, setCancellationReason] = useState('');
     const [couponCode, setCouponCode] = useState('');
     const [discountedPrice, setDiscountedPrice] = useRecoilState(discountedPriceState);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/user/course/details/${courseId}`);
+                const response = await fetch(`${baseUrl}/user/course/details/${courseId}`);
                 const data = await response.json();
                 setCourse(data.course);
-                const lessonsResponse = await fetch(`http://localhost:3000/user/course/${courseId}/lessons`);
+                const lessonsResponse = await fetch(`${baseUrl}/user/course/${courseId}/lessons`);
                 const lessonsData = await lessonsResponse.json();
                 setLessons(lessonsData);
             } catch (error) {
@@ -44,7 +45,7 @@ const CourseDetailsPage = () => {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/user/profile', {
+                    const response = await fetch(`${baseUrl}/user/profile`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     const data = await response.json();
@@ -75,7 +76,7 @@ const CourseDetailsPage = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/user/cart', {
+            const response = await fetch(`${baseUrl}/user/cart`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -100,7 +101,7 @@ const CourseDetailsPage = () => {
     const handleCancelCourse = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:3000/user/create-cancellation-request', {
+            const response = await fetch(`${baseUrl}/user/create-cancellation-request`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -124,7 +125,7 @@ const CourseDetailsPage = () => {
         try {
             const token = localStorage.getItem('token');
             let originalPrice = course.price
-            const response = await fetch(`http://localhost:3000/user/apply-coupon`, {
+            const response = await fetch(`${baseUrl}/user/apply-coupon`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -149,7 +150,7 @@ const CourseDetailsPage = () => {
     //     try {
     //         const token = localStorage.getItem('token');
     //         // Assuming you have an endpoint to check the status
-    //         const response = await fetch(`http://localhost:3000/user/check-cancellation-status/${courseId}`, {
+    //         const response = await fetch(`${baseUrl}/user/check-cancellation-status/${courseId}`, {
     //             headers: { 'Authorization': `Bearer ${token}` }
     //         });
     //         const data = await response.json();
@@ -189,7 +190,7 @@ const CourseDetailsPage = () => {
                             cover={
                                 <img
                                     alt={course.title}
-                                    src={`http://localhost:3000/${course.image}`}
+                                    src={`${baseUrl}/${course.image}`}
                                     style={{ objectFit: 'cover', height: '300px', borderTopLeftRadius: '8px', borderTopRightRadius: '8px' }}
                                 />
                             }
