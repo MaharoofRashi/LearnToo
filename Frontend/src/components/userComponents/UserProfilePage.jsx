@@ -25,9 +25,11 @@ const UserProfilePage = () => {
 
     const fetchUserProfile = async () => {
         try {
-            const response = await axiosInstance.get('/user/profile');
+            const response = await axiosInstance.get(`${baseUrl}/user/profile`);
             form.setFieldsValue(response.data.userProfile);
-            setAddresses(response.data.userProfile.addresses);
+            if (response.data.userProfile.addresses) {
+                setAddresses(response.data.userProfile.addresses);
+            }
             setEducation(response.data.userProfile.education);
             setOrders(response.data.userProfile.orders);
         } catch (error) {
@@ -37,7 +39,7 @@ const UserProfilePage = () => {
 
     const downloadInvoice = async (orderId) => {
         try {
-            const response = await axiosInstance.get(`/user/download-invoice/${orderId}`, { responseType: 'blob' });
+            const response = await axiosInstance.get(`${baseUrl}/user/download-invoice/${orderId}`, { responseType: 'blob' });
             const blob = new Blob([response.data], { type: 'application/pdf' });
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -52,7 +54,7 @@ const UserProfilePage = () => {
     };
     const onUpdateProfile = async (values) => {
         try {
-            await axiosInstance.put('/user/profile', values);
+            await axiosInstance.put(`${baseUrl}/user/profile`, values);
             fetchUserProfile(); // Refresh the data
             notification.success({ message: 'Profile updated successfully' });
         } catch (error) {
@@ -71,7 +73,7 @@ const UserProfilePage = () => {
         await form.validateFields();
         const values = form.getFieldsValue();
         try {
-            const endpoint = modalType === 'address' ? '/user/profile/address' : '/user/profile/education';
+            const endpoint = modalType === 'address' ? `${baseUrl}/user/profile/address` : `${baseUrl}/user/profile/education`;
             const method = selectedItem ? 'put' : 'post';
             const url = selectedItem ? `${endpoint}/${selectedItem._id}` : endpoint;
 
@@ -86,7 +88,7 @@ const UserProfilePage = () => {
 
     const handleDelete = async (itemId) => {
         try {
-            const endpoint = modalType === 'address' ? '/user/profile/address' : '/user/profile/education';
+            const endpoint = modalType === 'address' ? `${baseUrl}/user/profile/address` : `${baseUrl}/user/profile/education`;
             await axiosInstance.delete(`${endpoint}/${itemId}`);
             fetchUserProfile();
             notification.success({ message: `${modalType} deleted successfully` });
@@ -97,7 +99,7 @@ const UserProfilePage = () => {
 
     const setDefaultAddress = async (addressId) => {
         try {
-            await axiosInstance.put('/user/profile/set-default-address', { addressId });
+            await axiosInstance.put(`${baseUrl}/user/profile/set-default-address`, { addressId });
             fetchUserProfile(); // Refresh the data
             notification.success({ message: 'Default address set successfully' });
         } catch (error) {

@@ -84,7 +84,7 @@ const CheckoutPage = () => {
         fetchSelectedCourses();
         const fetchAddresses = async () => {
             try {
-                const response = await axios.get('${baseUrl}/user/profile', { headers: { Authorization: `Bearer ${token}` } });
+                const response = await axios.get(`${baseUrl}/user/profile`, { headers: { Authorization: `Bearer ${token}` } });
                 setAddresses(response.data.userProfile.addresses);
                 const defaultAddress = response.data.userProfile.addresses.find(address => address.isDefault);
                 if (defaultAddress) {
@@ -104,9 +104,14 @@ const CheckoutPage = () => {
 
     const handleAddNewAddress = async () => {
         try {
-            const newAddress = await form.validateFields(); // This will ensure all required fields are filled
-            const response = await axios.post(`${baseUrl}/user/profile/address`, newAddress, { headers: { Authorization: `Bearer ${token}` } });
-            setAddresses([...addresses, response.data]);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+            const newAddress = await form.validateFields();
+            await axios.post(`${baseUrl}/user/profile/address`, newAddress, { headers: { Authorization: `Bearer ${token}` } });
+            const response = await axios.get(`${baseUrl}/user/profile`, { headers: { Authorization: `Bearer ${token}` } });
+            setAddresses(response.data.userProfile.addresses);
             notification.success({ message: 'New address added successfully' });
             setIsModalVisible(false);
             form.resetFields();
