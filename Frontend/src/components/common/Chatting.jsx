@@ -266,6 +266,7 @@ const Chatting = () => {
                             }
 
                             const messageAlignment = item.isCurrentUserMessage ? 'flex-end' : 'flex-start';
+                            const senderName = item.sender ? item.sender.name : 'Admin';
 
                             return (
                                 <List.Item
@@ -276,6 +277,11 @@ const Chatting = () => {
                                         alignItems: messageAlignment
                                     }}
                                 >
+                                    {!item.isCurrentUserMessage && (
+                                        <div style={{ marginBottom: '5px', marginLeft: '45px', color: '#555', fontSize: '14px' }}>
+                                            {senderName}
+                                        </div>
+                                    )}
                                     <div style={{ position: 'relative', maxWidth: '60%' }}>
                                         <div style={{
                                             backgroundColor: item.isCurrentUserMessage ? '#daf8cb' : '#ECECEC',

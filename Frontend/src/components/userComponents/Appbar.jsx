@@ -56,7 +56,7 @@ const Appbar = () => {
                 <Link to="/profile">My Profile</Link>
             </Menu.Item>
             <Menu.Item key="1">
-                <Link to="/wishlist">Wishlist</Link>
+                <Link to="/chat">Chat</Link>
             </Menu.Item>
             <Menu.Item key="2">
                 <Link to="/purchased-courses">Purchased Courses</Link>
