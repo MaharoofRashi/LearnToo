@@ -61,10 +61,13 @@ module.exports = function (io) {
                     const newMessage = new ChatMessage({ sender, course: courseId, message, readBy: [sender] });
                     await newMessage.save();
 
+                    const populatedMessage = await ChatMessage.findById(newMessage._id).populate('sender');
+
+                    console.log('populatedmes', populatedMessage)
                     await redisClient.lpush(`course_chat_${courseId}`, JSON.stringify(newMessage));
                     await redisClient.ltrim(`course_chat_${courseId}`, 0, 99);
 
-                    io.to(`course_${courseId}`).emit('newMessage', newMessage);
+                    io.to(`course_${courseId}`).emit('newMessage', populatedMessage);
                 } catch (error) {
                     console.error('Error sending message:', error);
                 }

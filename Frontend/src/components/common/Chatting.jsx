@@ -117,9 +117,20 @@ const Chatting = () => {
 
         socketRef.current.on('newMessage', message => {
             console.log('New message received:', message);
+
+            let isCurrentUserMessage = false;
+
+            if (userRole === 'admin') {
+                isCurrentUserMessage = message.sender === null;
+            } else {
+                isCurrentUserMessage = message.sender && message.sender._id === currentUser.id;
+            }
+
+            console.log('Is current user message:', isCurrentUserMessage);
+
             if (message.course === activeCourse) {
-                setMessages(prev => [...prev, message]);
-            } else if (message.sender !== currentUser.id) {
+                setMessages(prev => [...prev, { ...message, isCurrentUserMessage }]);
+            } else if (!isCurrentUserMessage) {
                 setUnreadCounts(prevCounts => {
                     const newCounts = { ...prevCounts };
                     newCounts[message.course] = (newCounts[message.course] || 0) + 1;
@@ -250,19 +261,29 @@ const Chatting = () => {
                     <List
                         dataSource={messages}
                         renderItem={item => {
-                            if (!item.sender) {
+                            if (!item.sender && userRole !== 'admin') {
                                 return null;
                             }
 
+                            const messageAlignment = item.isCurrentUserMessage ? 'flex-end' : 'flex-start';
+
                             return (
-                                <List.Item key={item._id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <List.Item
+                                    key={item._id}
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: messageAlignment
+                                    }}
+                                >
                                     <div style={{ position: 'relative', maxWidth: '60%' }}>
                                         <div style={{
-                                            backgroundColor: '#ECECEC',
+                                            backgroundColor: item.isCurrentUserMessage ? '#daf8cb' : '#ECECEC',
                                             borderRadius: '20px',
                                             padding: '10px 20px',
                                             boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                                            marginLeft: '45px'
+                                            marginLeft: item.isCurrentUserMessage ? '0' : '45px',
+                                            marginRight: item.isCurrentUserMessage ? '45px' : '0',
                                         }}>
                                             {item.message}
                                             <div style={{ fontSize: '12px', color: 'grey', marginTop: '5px' }}>
@@ -274,6 +295,7 @@ const Chatting = () => {
                             );
                         }}
                     />
+
                     <div ref={endOfMessagesRef} />
                 </div>
                 <div style={{ display: 'flex', borderTop: '1px solid #ececec', paddingTop: '10px', alignItems: 'center' }}>
